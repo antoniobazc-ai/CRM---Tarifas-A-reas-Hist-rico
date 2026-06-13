@@ -20,9 +20,9 @@ TEMPLATE = 'dashboard_template.html'
 CHARTJS = 'node_modules/chart.js/dist/chart.umd.js'
 OUT = '../index.html'
 
-# Tarifario proyectado Sem 24-26 2026 (tarifa base, idéntico en las 3 semanas)
+# Tarifario proyectado Sem 24-27 2026 (tarifa base, idéntico en las 4 semanas)
 PROJ = [
- ("AMS","Directo",2.41),("AMS","Indirecto",2.05),
+ ("AMS","DIRECTO",2.41),  # opción única: tarifa del vuelo directo
  ("BKK","AFKL",3.70),("BKK","KOREAN",4.11),("BKK","CATHAY",3.60),
  ("BOG","LATAM",0.83),("BOG","AIR CARIBE",0.83),
  ("BOM","AFKL",3.70),("BOM","DHL",3.05),("BOM","MERCURY",3.55),("BOM","QATAR",3.50),
@@ -73,9 +73,8 @@ def main(xlsx):
     html = open(TEMPLATE, encoding='utf-8').read()
     html = html.replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>',
                         '<script>\n' + open(CHARTJS, encoding='utf-8').read() + '\n</script>')
-    html = html.replace('/*__DATA__*/[]', json.dumps(recs.to_dict(orient='records'), ensure_ascii=False, separators=(',',':')))
-    html = html.replace('/*__PROJ__*/[]', json.dumps([{"pod":p,"air":a,"tarifa":t} for p,a,t in PROJ], separators=(',',':')))
-    html = html.replace('const PROJ = ', 'function safe(fn){ try{ fn(); }catch(e){ console.error(e); } }\nconst PROJ = ')
+    html = html.replace('const DATA = /*__DATA__*/[];', 'const DATA = ' + json.dumps(recs.to_dict(orient='records'), ensure_ascii=False, separators=(',',':')) + ';')
+    html = html.replace('const PROJ = /*__PROJ__*/[];', 'const PROJ = ' + json.dumps([{"pod":p,"air":a,"tarifa":t} for p,a,t in PROJ], separators=(',',':')) + ';')
     open(OUT, 'w', encoding='utf-8').write(html)
     print(f'OK -> {OUT} | {len(recs)} registros')
 

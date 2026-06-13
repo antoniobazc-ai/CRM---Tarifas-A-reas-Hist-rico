@@ -14,12 +14,11 @@ Dashboard interactivo y autónomo (un solo archivo HTML, sin dependencias extern
 
 ## Vistas del dashboard
 
-- **Evolución por Quarter** — promedio, banda mín–máx y volumen; pestañas General / Por destino
+- **Evolución por Quarter** — promedio, banda mín–máx y volumen; pestañas General / Por aerolínea / Por destino, con las semanas proyectadas S24–26 extendiendo cada serie en línea punteada
 - **Matriz Destino × Quarter** — heatmap, color relativo al promedio de cada ruta
-- **Evolución Ruta-Aerolínea × Quarter** — heatmap con filas ruta·aerolínea (nunca mezcla destinos)
-- **GAP proyectado vs histórico** — barras divergentes con benchmark conmutable (histórico total / solo Q2)
-- **Close-up Sem 24–26** — tarifa proyectada por opción vs. benchmark histórico de la ruta-aerolínea
-- Filtros en cascada: el selector de aerolíneas se limita a los carriers reales del destino elegido
+- **Matriz Aerolínea × Quarter** — heatmap de carriers (filtrar por destino para comparar en una misma ruta)
+- **Close-up histórico → forecast** — vista secuencial por destino: histórico por quarter (trazo sólido) y forecast S24·S25·S26 (trazo punteado sobre zona sombreada), con tabla de detalle colapsable
+- Filtros por destino, aerolínea, año y status
 
 ## Reglas de datos
 
@@ -37,6 +36,10 @@ npm install chart.js@4.4.4
 cd src
 python build_dashboard.py /ruta/a/HISTORICO_TARIFAS.xlsx
 ```
+
+## Acceso
+
+El dashboard pide ID y contraseña al abrir. **Nota técnica honesta**: al ser un HTML estático, el login es disuasivo, no seguridad real — credenciales y datos están en el código fuente del archivo. La protección efectiva es mantener el repositorio privado.
 
 ## ⚠️ Confidencialidad
 

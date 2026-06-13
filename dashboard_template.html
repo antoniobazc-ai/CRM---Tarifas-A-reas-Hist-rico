@@ -79,7 +79,19 @@ footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:2
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="login-gate" style="position:fixed;inset:0;background:var(--paper);z-index:1000;display:flex;align-items:center;justify-content:center">
+  <div style="background:var(--panel);border:2px solid var(--ink);padding:34px 38px;max-width:340px;width:90%">
+    <div style="font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.5px">Tarifas Aéreas</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin:4px 0 22px">HORTIFRUT PERÚ · ACCESO RESTRINGIDO</div>
+    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);display:block;margin-bottom:4px">ID</label>
+    <input id="login-id" type="text" autocomplete="off" style="width:100%;font-family:var(--mono);font-size:14px;padding:9px 10px;border:1.5px solid var(--ink);border-radius:0;margin-bottom:14px;box-sizing:border-box">
+    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);display:block;margin-bottom:4px">Contraseña</label>
+    <input id="login-pw" type="password" style="width:100%;font-family:var(--mono);font-size:14px;padding:9px 10px;border:1.5px solid var(--ink);border-radius:0;margin-bottom:18px;box-sizing:border-box">
+    <button id="login-btn" style="width:100%;font-family:var(--mono);font-size:13px;padding:11px;background:var(--ink);color:#fff;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:1px">Ingresar</button>
+    <div id="login-err" style="font-family:var(--mono);font-size:11.5px;color:var(--accent-2);margin-top:10px;min-height:15px"></div>
+  </div>
+</div>
+<div class="wrap" id="app-wrap" style="visibility:hidden">
 
 <header>
   <div class="hd-title">
@@ -109,6 +121,7 @@ footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:2
     <h2>Evolución de la tarifa por Quarter</h2>
     <div class="tabs">
       <button class="tab active" data-view="general">General</button>
+      <button class="tab" data-view="air">Por aerolínea</button>
       <button class="tab" data-view="pod">Por destino</button>
     </div>
   </div>
@@ -129,7 +142,7 @@ footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:2
     <div class="panel-b"><div class="chart-box"><canvas id="ch-pod"></canvas></div></div>
   </div>
   <div class="panel">
-    <div class="panel-h"><h2>Por Aerolínea</h2><span class="tag" id="tag-air-bars">tarifa promedio (barra) · embarques (n)</span></div>
+    <div class="panel-h"><h2>Por Aerolínea</h2><span class="tag">tarifa promedio (barra) · embarques (n)</span></div>
     <div class="panel-b"><div class="chart-box"><canvas id="ch-air"></canvas></div></div>
   </div>
 </div>
@@ -140,29 +153,21 @@ footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:2
 </div>
 
 <div class="panel">
-  <div class="panel-h"><h2>Evolución Ruta-Aerolínea × Quarter — mapa de calor</h2><span class="tag" id="tag-air-hm">color = nivel de cada quarter vs. el promedio histórico de esa misma fila</span></div>
+  <div class="panel-h"><h2>Matriz Aerolínea × Quarter — tarifa promedio</h2><span class="tag">filtra por destino para comparar carriers en una misma ruta</span></div>
   <div class="panel-b hm-scroll" id="hm-air"></div>
 </div>
 
 <div class="panel">
   <div class="panel-h">
-    <h2>GAP — proyectado S24–26 vs histórico</h2>
-    <div class="tabs">
-      <button class="tab gap-tab active" data-bench="all">Hist. total</button>
-      <button class="tab gap-tab" data-bench="q2">Solo Q2 (estacional)</button>
+    <h2>Close-up — histórico → forecast S24–S27</h2>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="tag">Destino:</span>
+      <select id="proj-pod" style="font-family:var(--mono);font-size:12.5px;padding:5px 8px;border:1.5px solid var(--ink);background:var(--panel);border-radius:0"></select>
     </div>
   </div>
   <div class="panel-b">
-    <div class="note" id="gap-hint" style="margin:0 0 8px"></div>
-    <div class="chart-box" style="height:700px"><canvas id="ch-gap"></canvas></div>
-  </div>
-</div>
-
-<div class="panel">
-  <div class="panel-h"><h2>Close-up Sem 24–26 · 2026 — proyectado vs histórico</h2><span class="tag">barra = tarifa proyectada · rombo negro = promedio histórico de la ruta-aerolínea</span></div>
-  <div class="panel-b">
-    <div class="note" style="margin:0 0 8px">Tarifario idéntico en las 3 semanas (Q2-2026). Barra verde = proyectado por debajo de su histórico; naranja = por encima; gris = ruta nueva sin histórico. El rombo marca el benchmark histórico contra el que se compara cada opción.</div>
-    <div class="chart-box" id="proj-box" style="height:760px"><canvas id="ch-proj"></canvas></div>
+    <div class="note" style="margin:0 0 8px">Cada línea es un carrier en esta ruta: trazo sólido = tarifa histórica por quarter; trazo punteado sobre la zona sombreada = forecast semanal S24–S27. Carriers sin histórico en la ruta aparecen solo en la zona de forecast.</div>
+    <div class="chart-box tall"><canvas id="ch-proj"></canvas></div>
     <details style="margin-top:12px">
       <summary style="font-family:var(--mono);font-size:12px;cursor:pointer;color:var(--ink-soft)">Ver detalle en tabla</summary>
       <div style="overflow-x:auto;margin-top:8px"><table class="tq" id="tbl-proj"></table></div>
@@ -177,120 +182,104 @@ Quarter asignado por ETD · Promedios simples por embarque (no ponderados por pe
 
 <script>
 const DATA = /*__DATA__*/[];
+function safe(fn){ try{ fn(); }catch(e){ console.error(e); } }
 const PROJ = /*__PROJ__*/[];
 
 /* equivalencias proyectado -> histórico (AFKL agrupa Air France + KLM) */
 const PROJ_MAP = {'AFKL':['AIR FRANCE','KLM'],'AF':['AIR FRANCE'],'QATAR':['AIRMAX/QATAR']};
 
-/* ───────── GAP divergente: proyectado vs benchmark ───────── */
-let gapBench = 'all';
-function computeProjItems(bench){
-  const base = bench==='q2' ? DATA.filter(r=>r.anioq.endsWith('Q2')) : DATA;
-  const podAvg = {};
-  base.forEach(r=>{(podAvg[r.pod]=podAvg[r.pod]||[]).push(r.tarifa);});
-  return PROJ.map(p=>{
-    const hairs = PROJ_MAP[p.air] || [p.air];
-    let hist = base.filter(r=>r.pod===p.pod && hairs.includes(r.air)).map(r=>r.tarifa);
-    let baseLbl = hairs.join('+');
-    if(!hist.length && podAvg[p.pod]){ hist = podAvg[p.pod]; baseLbl = 'vs POD'; }
-    const hm = hist.length ? mean(hist) : null;
-    return {...p, hm, baseLbl, n: hist.length};
-  });
-}
-function renderGap(){
-  const items = computeProjItems(gapBench).filter(i=>i.hm!=null);
-  items.sort((a,b)=>((a.tarifa-a.hm)/a.hm)-((b.tarifa-b.hm)/b.hm));
-  const sinHist = computeProjItems(gapBench).filter(i=>i.hm==null).map(i=>i.pod+' · '+i.air);
-  const gaps = items.map(i=>(i.tarifa-i.hm)/i.hm*100);
-  const lim = Math.ceil(Math.max(...gaps.map(Math.abs))/10)*10;
-  $('gap-hint').textContent = (gapBench==='q2'
-    ? 'Benchmark: promedio histórico SOLO de quarters Q2 (comparación estacionalmente justa — las semanas 24–26 caen en Q2).'
-    : 'Benchmark: promedio histórico completo 2023–2026 (incluye picos de Q4, puede inflar los gaps).')
-    + ' Barra a la izquierda (verde) = proyectado más barato que el histórico; derecha (naranja) = más caro.'
-    + (sinHist.length ? ' Sin benchmark (ruta nueva): '+sinHist.join(', ')+'.' : '');
-  if(charts.gap) charts.gap.destroy();
-  charts.gap = new Chart($('ch-gap'),{
-    type:'bar',
-    data:{labels:items.map(i=>i.pod+' · '+i.air),datasets:[{
-      data:gaps,
-      backgroundColor:gaps.map(g=>g<-1?'rgba(14,110,92,.8)':g>1?'rgba(201,84,42,.8)':'rgba(66,86,106,.5)'),
-      barPercentage:.7
-    }]},
-    options:{indexAxis:'y',maintainAspectRatio:false,
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:c=>{
-          const it = items[c.dataIndex];
-          const d = c.parsed.x;
-          return (d>=0?'+':'')+fmt(d,1)+'% · proy. $'+fmt(it.tarifa)+' vs hist. $'+fmt(it.hm)+' ('+it.baseLbl+' · n='+it.n+')';
-        }}}},
-      scales:{x:{min:-lim,max:lim,title:{display:true,text:'GAP % vs histórico (0 = histórico)'},grid:{color:ctx=>ctx.tick.value===0?C.ink:C.line,lineWidth:ctx=>ctx.tick.value===0?2:1}},
-              y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}
-  });
-}
-document.querySelectorAll('.gap-tab').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.gap-tab').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  gapBench = b.dataset.bench;
-  safe(()=>renderGap());
-}));
-
 function renderProj(){
-  const podAvg = {};
-  DATA.forEach(r=>{(podAvg[r.pod]=podAvg[r.pod]||[]).push(r.tarifa);});
-  /* preparar items con benchmark */
-  const items = PROJ.map(p=>{
+  /* close-up secuencial: histórico por Q (sólido) → forecast S24-S26 (punteado sobre zona sombreada) */
+  const sel = $('proj-pod');
+  if(!sel.options.length){
+    [...new Set(PROJ.map(p=>p.pod))].forEach(p=>{
+      const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o);
+    });
+    sel.addEventListener('change',()=>safe(()=>renderProj()));
+  }
+  const pod = sel.value || (sel.options[0] && sel.options[0].value) || (PROJ[0] && PROJ[0].pod);
+  if(!pod) return;
+  const opts = PROJ.filter(p=>p.pod===pod);
+  /* últimos 6 quarters con datos en la ruta + las 3 semanas de forecast */
+  const podRows = DATA.filter(r=>r.pod===pod);
+  const qsPod = allQ.filter(q=>podRows.some(r=>r.anioq===q)).slice(-6);
+  const FW = ['S24','S25','S26','S27'];
+  const labels = qsPod.concat(FW);
+  const fStart = qsPod.length;
+
+  const datasets = [];
+  opts.forEach((p,i)=>{
+    const col = PALETTE[i%PALETTE.length];
     const hairs = PROJ_MAP[p.air] || [p.air];
-    let hist = DATA.filter(r=>r.pod===p.pod && hairs.includes(r.air)).map(r=>r.tarifa);
-    let baseLbl = hairs.join('+');
-    if(!hist.length && podAvg[p.pod]){ hist = podAvg[p.pod]; baseLbl = 'vs POD'; }
-    const hm = hist.length ? mean(hist) : null;
-    return {...p, hm, baseLbl, n: hist.length};
+    /* DIRECTO (AMS) no es una aerolínea: se compara contra el histórico de toda la ruta */
+    const matchRow = p.air==='DIRECTO' ? (r=>true) : (r=>hairs.includes(r.air));
+    const hist = qsPod.map(q=>{
+      const t = podRows.filter(r=>matchRow(r) && r.anioq===q).map(r=>r.tarifa);
+      return t.length ? mean(t) : null;
+    });
+    /* línea sólida: solo histórico */
+    datasets.push({type:'line',label:p.air,data:hist.concat([null,null,null]),
+      borderColor:col,backgroundColor:col,borderWidth:2.5,pointRadius:4,spanGaps:true,tension:.25});
+    /* línea punteada: conexión del último dato histórico al forecast plano */
+    const lastIdx = hist.map((v,ix)=>v!=null?ix:-1).reduce((a,b)=>Math.max(a,b),-1);
+    const fc = Array(labels.length).fill(null);
+    if(lastIdx>=0) fc[lastIdx] = hist[lastIdx];
+    for(let w=0;w<FW.length;w++) fc[fStart+w]=p.tarifa;
+    datasets.push({type:'line',label:p.air+'·fc',data:fc,
+      borderColor:col,backgroundColor:col,borderWidth:2.5,borderDash:[7,5],pointRadius:5,pointStyle:'rectRot',spanGaps:true,tension:0});
   });
 
-  /* gráfico close-up: barras horizontales + rombo de histórico */
-  const labels = items.map(i=>i.pod+' · '+i.air);
-  const barColors = items.map(i=>{
-    if(i.hm==null) return 'rgba(66,86,106,.35)';
-    const d=(i.tarifa-i.hm)/i.hm;
-    return d>0.01 ? 'rgba(201,84,42,.75)' : d<-0.01 ? 'rgba(14,110,92,.75)' : 'rgba(66,86,106,.55)';
-  });
+  /* zona sombreada de forecast */
+  const forecastZone = {
+    id:'forecastZone',
+    beforeDraw(chart){
+      const xs = chart.scales.x, ys = chart.scales.y, ctx = chart.ctx;
+      if(!xs || fStart<1) return;
+      const x0 = (xs.getPixelForValue(fStart-1)+xs.getPixelForValue(fStart))/2;
+      ctx.save();
+      ctx.fillStyle = 'rgba(217,149,20,.08)';
+      ctx.fillRect(x0, ys.top, xs.right-x0, ys.bottom-ys.top);
+      ctx.strokeStyle = 'rgba(217,149,20,.5)'; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(x0, ys.top); ctx.lineTo(x0, ys.bottom); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(217,149,20,.85)';
+      ctx.font = "700 10px 'Courier New',monospace";
+      ctx.fillText('FORECAST', x0+8, ys.top+14);
+      ctx.restore();
+    }
+  };
+
   if(charts.proj) charts.proj.destroy();
   charts.proj = new Chart($('ch-proj'),{
-    data:{labels,datasets:[
-      {type:'bar',label:'Proyectado S24–26',data:items.map(i=>i.tarifa),backgroundColor:barColors,barPercentage:.65,order:2},
-      {type:'scatter',label:'Histórico ruta-aerolínea',data:items.map((i,ix)=>i.hm!=null?{x:i.hm,y:ix}:null).filter(Boolean),
-       pointStyle:'rectRot',radius:6,backgroundColor:C.ink,borderColor:'#fff',borderWidth:1,order:1}
-    ]},
-    options:{indexAxis:'y',maintainAspectRatio:false,
-      plugins:{legend:{position:'bottom',labels:{boxWidth:14}},
+    data:{labels,datasets},
+    plugins:[forecastZone],
+    options:{maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:14,filter:i=>!i.text.endsWith('·fc')}},
         tooltip:{callbacks:{label:c=>{
-          const it = items[c.dataIndex!=null && c.dataset.type==='bar' ? c.dataIndex : (c.raw&&c.raw.y!=null?c.raw.y:c.dataIndex)];
-          if(c.dataset.type==='bar'){
-            let s = 'Proyectado: $'+fmt(it.tarifa);
-            if(it.hm!=null){ const d=(it.tarifa-it.hm)/it.hm*100; s += '  ('+(d>=0?'+':'')+fmt(d,1)+'% vs hist. $'+fmt(it.hm)+' · '+it.baseLbl+' n='+it.n+')'; }
-            else s += '  (ruta nueva, sin histórico)';
-            return s;
-          }
-          return 'Histórico: $'+fmt(it.hm)+' ('+it.baseLbl+' · n='+it.n+')';
+          const name = c.dataset.label.replace('·fc','');
+          const isFc = c.dataset.label.endsWith('·fc') && c.dataIndex>=fStart;
+          return name+(isFc?' (forecast)':'')+': $'+fmt(c.parsed.y);
         }}}},
-      scales:{x:{title:{display:true,text:'USD/kg'},grid:{color:C.line},beginAtZero:true},
-              y:{grid:{display:false},ticks:{font:{size:10},autoSkip:false}}}}
+      scales:{y:{title:{display:true,text:'USD/kg'},grid:{color:C.line}},x:{grid:{display:false}}}}
   });
 
-  /* tabla de respaldo (colapsada) */
-  let html = '<tr><th>POD</th><th>Opción</th><th>S24</th><th>S25</th><th>S26</th><th>Q proy.</th><th>Histórico</th><th>Δ vs hist.</th><th>Base comp.</th></tr>';
-  let lastPod = '';
-  items.forEach(p=>{
+  /* tabla de respaldo (colapsada) — solo la ruta seleccionada, sin n */
+  const podAvgSel = podRows.map(r=>r.tarifa);
+  let html = '<tr><th>Opción</th><th>S24</th><th>S25</th><th>S26</th><th>S27</th><th>Q forecast</th><th>Histórico ruta-aerolínea</th><th>Δ vs hist.</th></tr>';
+  opts.forEach(p=>{
+    const hairs = PROJ_MAP[p.air] || [p.air];
+    let hist = podRows.filter(r=>hairs.includes(r.air)).map(r=>r.tarifa);
+    if(!hist.length) hist = podAvgSel;
+    const hm = hist.length ? mean(hist) : null;
     let dCell = '<span class="flat">sin histórico</span>';
-    if(p.hm!=null){
-      const d = (p.tarifa-p.hm)/p.hm*100;
+    if(hm!=null){
+      const d = (p.tarifa-hm)/hm*100;
       const cls = d>1 ? 'up' : d<-1 ? 'dn' : 'flat';
       const arrow = d>1 ? '▲' : d<-1 ? '▼' : '≈';
       dCell = `<span class="${cls}">${arrow} ${fmt(Math.abs(d),1)}%</span>`;
     }
     const t = '$'+fmt(p.tarifa);
-    html += `<tr><td>${p.pod===lastPod?'':p.pod}</td><td style="text-align:left;font-weight:400">${p.air}</td><td>${t}</td><td>${t}</td><td>${t}</td><td>2026-Q2</td><td>${p.hm!=null?'$'+fmt(p.hm):'—'}</td><td>${dCell}</td><td style="font-size:10.5px;color:var(--ink-soft)">${p.hm!=null?p.baseLbl+' · n='+p.n:'—'}</td></tr>`;
-    lastPod = p.pod;
+    html += `<tr><td style="text-align:left">${p.air}</td><td>${t}</td><td>${t}</td><td>${t}</td><td>${t}</td><td>Q2 (S24–26) · Q3 (S27)</td><td>${hm!=null?'$'+fmt(hm):'—'}</td><td>${dCell}</td></tr>`;
   });
   $('tbl-proj').innerHTML = html;
 }
@@ -319,34 +308,6 @@ fillSelect('f-pod', podsSorted);
 fillSelect('f-air', airsSorted);
 fillSelect('f-anio', [...new Set(DATA.map(r=>r.anio))].sort());
 
-/* cascada: el selector de aerolínea solo ofrece carriers del destino elegido, y viceversa */
-function rebuildSelect(id, vals, keep){
-  const sel = $(id);
-  sel.innerHTML = '<option value="">'+(id==='f-pod'?'Todos':'Todas')+'</option>';
-  vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;sel.appendChild(o);});
-  sel.value = vals.includes(keep) ? keep : '';
-}
-function cascade(changed){
-  const p = $('f-pod').value, a = $('f-air').value;
-  if(changed==='pod'){
-    const opts = p ? [...new Set(DATA.filter(r=>r.pod===p).map(r=>r.air))] : airsSorted;
-    rebuildSelect('f-air', p ? airsSorted.filter(x=>opts.includes(x)) : airsSorted, a);
-  } else if(changed==='air'){
-    const opts = a ? [...new Set(DATA.filter(r=>r.air===a).map(r=>r.pod))] : podsSorted;
-    rebuildSelect('f-pod', a ? podsSorted.filter(x=>opts.includes(x)) : podsSorted, p);
-  }
-}
-
-/* destino ancla: el POD filtrado o, en su defecto, el de mayor volumen de la selección */
-function scopePod(rows){
-  const p = $('f-pod').value;
-  if(p) return {pod:p, auto:false};
-  const c = {};
-  rows.forEach(r=>c[r.pod]=(c[r.pod]||0)+1);
-  const top = Object.entries(c).sort((a,b)=>b[1]-a[1])[0];
-  return top ? {pod:top[0], auto:true} : {pod:null, auto:false};
-}
-
 let charts = {};
 function getFiltered(){
   const p=$('f-pod').value, a=$('f-air').value, y=$('f-anio').value, s=$('f-status').value;
@@ -371,53 +332,94 @@ function renderEvo(rows){
   if(charts.evo) charts.evo.destroy();
   const hint = $('evo-hint');
 
-  if(evoView === 'general'){
-    hint.textContent = 'Promedio · banda mín–máx · barras = volumen de embarques';
+  /* proyección aplicable según filtros activos (pod / aerolínea) */
+const PROJ_WEEKS = ['S24·26','S25·26','S26·26','S27·26'];
+function projForFilters(){
+  const p = $('f-pod').value, a = $('f-air').value;
+  return PROJ.filter(x=>{
+    if(p && x.pod!==p) return false;
+    if(a){ const hairs = PROJ_MAP[x.air] || [x.air]; if(!hairs.includes(a)) return false; }
+    return true;
+  });
+}
+
+if(evoView === 'general'){
+    hint.textContent = 'Promedio · banda mín–máx · barras = volumen · línea punteada ámbar = tarifario proyectado Sem 24–26';
     const avg=[],lo=[],hi=[],n=[];
     qs.forEach(q=>{
       const t = rows.filter(r=>r.anioq===q).map(r=>r.tarifa);
       avg.push(mean(t)); lo.push(Math.min(...t)); hi.push(Math.max(...t)); n.push(t.length);
     });
+    /* proyección: promedio del tarifario aplicable, idéntico en las 3 semanas */
+    const pr = projForFilters().map(x=>x.tarifa);
+    const pAvg = pr.length ? mean(pr) : null;
+    const labels = pAvg!=null ? qs.concat(PROJ_WEEKS) : qs;
+    const pad = qs.length ? Array(qs.length-1).fill(null) : [];
+    const projLine = pAvg!=null ? pad.concat([avg[avg.length-1]??pAvg, pAvg, pAvg, pAvg, pAvg]) : [];
+    const ds = [
+      {type:'line',label:'Máx',data:hi,borderColor:'rgba(201,84,42,.35)',borderWidth:1,pointRadius:0,fill:'+1',backgroundColor:'rgba(14,110,92,.08)',tension:.25,yAxisID:'y'},
+      {type:'line',label:'Mín',data:lo,borderColor:'rgba(14,110,92,.35)',borderWidth:1,pointRadius:0,tension:.25,yAxisID:'y'},
+      {type:'line',label:'Tarifa promedio',data:avg,borderColor:C.ink,backgroundColor:C.ink,borderWidth:2.5,pointRadius:4,pointBackgroundColor:C.acc2,tension:.25,yAxisID:'y'},
+      {type:'bar',label:'Embarques',data:n,backgroundColor:'rgba(66,86,106,.18)',yAxisID:'y2',barPercentage:.55}
+    ];
+    if(pAvg!=null) ds.push({type:'line',label:'Proyectado S24–27',data:projLine,borderColor:C.amber,backgroundColor:C.amber,borderWidth:2.5,borderDash:[7,5],pointRadius:5,pointStyle:'rectRot',spanGaps:true,tension:0,yAxisID:'y'});
     charts.evo = new Chart($('ch-evo'),{
-      data:{labels:qs,datasets:[
-        {type:'line',label:'Máx',data:hi,borderColor:'rgba(201,84,42,.35)',borderWidth:1,pointRadius:0,fill:'+1',backgroundColor:'rgba(14,110,92,.08)',tension:.25,yAxisID:'y'},
-        {type:'line',label:'Mín',data:lo,borderColor:'rgba(14,110,92,.35)',borderWidth:1,pointRadius:0,tension:.25,yAxisID:'y'},
-        {type:'line',label:'Tarifa promedio',data:avg,borderColor:C.ink,backgroundColor:C.ink,borderWidth:2.5,pointRadius:4,pointBackgroundColor:C.acc2,tension:.25,yAxisID:'y'},
-        {type:'bar',label:'Embarques',data:n,backgroundColor:'rgba(66,86,106,.18)',yAxisID:'y2',barPercentage:.55}
-      ]},
+      data:{labels,datasets:ds},
       options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
         plugins:{legend:{position:'bottom',labels:{boxWidth:14}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.dataset.yAxisID==='y2'?c.parsed.y:'$'+fmt(c.parsed.y))}}},
         scales:{y:{title:{display:true,text:'USD/kg'},grid:{color:C.line}},
-                y2:{position:'right',grid:{display:false},title:{display:true,text:'n embarques'}},
+                y2:{position:'right',grid:{display:false},title:{display:true,text:'embarques'}},
                 x:{grid:{display:false}}}}
     });
     return;
   }
 
-  /* vista por destino: una línea por POD */
+  /* vista por aerolínea o por destino: una línea por serie + proyección por serie */
+  const key = evoView; // 'air' o 'pod'
   const MAXS = 8;
   const counts = {};
-  rows.forEach(r=>counts[r.pod]=(counts[r.pod]||0)+1);
+  rows.forEach(r=>counts[r[key]]=(counts[r[key]]||0)+1);
   const series = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,MAXS).map(e=>e[0]);
-  hint.textContent = 'Tarifa promedio por quarter de los '+series.length+' destinos con más embarques en la selección. Clic en la leyenda para ocultar series.';
-  const datasets = series.map((s,i)=>{
+  /* proyección por serie (aerolínea: vía PROJ_MAP; destino: promedio de opciones del POD) */
+  const projApplicable = projForFilters();
+  function projForSeries(s){
+    let vals;
+    if(key==='air') vals = projApplicable.filter(x=>(PROJ_MAP[x.air]||[x.air]).includes(s)).map(x=>x.tarifa);
+    else vals = projApplicable.filter(x=>x.pod===s).map(x=>x.tarifa);
+    return vals.length ? mean(vals) : null;
+  }
+  const anyProj = series.some(s=>projForSeries(s)!=null);
+  const labels = anyProj ? qs.concat(PROJ_WEEKS) : qs;
+  hint.textContent = (evoView==='air'
+    ? 'Tarifa promedio por quarter de las '+series.length+' aerolíneas con más embarques en la selección. Filtra un destino para comparar carriers en la misma ruta.'
+    : 'Tarifa promedio por quarter de los '+series.length+' destinos con más embarques en la selección.')
+    + (anyProj?' Rombo punteado = proyectado S24–27.':'')
+    + ' Clic en la leyenda para ocultar series.';
+  const datasets = [];
+  series.forEach((s,i)=>{
     const col = PALETTE[i%PALETTE.length];
     const data = qs.map(q=>{
-      const t = rows.filter(r=>r.pod===s && r.anioq===q).map(r=>r.tarifa);
+      const t = rows.filter(r=>r[key]===s && r.anioq===q).map(r=>r.tarifa);
       return t.length ? mean(t) : null;
     });
-    return {type:'line',label:s+' (n='+counts[s]+')',data,borderColor:col,backgroundColor:col,borderWidth:2,pointRadius:3,spanGaps:true,tension:.25};
+    if(anyProj) data.push(null,null,null,null);
+    datasets.push({type:'line',label:s,data,borderColor:col,backgroundColor:col,borderWidth:2,pointRadius:3,spanGaps:true,tension:.25});
+    const pv = projForSeries(s);
+    if(pv!=null){
+      const pd = Array(qs.length-1).fill(null).concat([data[qs.length-1], pv, pv, pv, pv]);
+      datasets.push({type:'line',label:s+' proy.',data:pd,borderColor:col,backgroundColor:col,borderWidth:2,borderDash:[6,4],pointRadius:4,pointStyle:'rectRot',spanGaps:true,tension:0,hideLegend:true});
+    }
   });
   charts.evo = new Chart($('ch-evo'),{
-    data:{labels:qs,datasets},
+    data:{labels,datasets},
     options:{maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},
-      plugins:{legend:{position:'bottom',labels:{boxWidth:14,font:{size:10}}},
-               tooltip:{callbacks:{label:c=>c.dataset.label.replace(/ \(n=\d+\)/,'')+': $'+fmt(c.parsed.y)}}},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:14,font:{size:10},filter:i=>!i.text.endsWith(' proy.')}},
+               tooltip:{callbacks:{label:c=>c.dataset.label+': $'+fmt(c.parsed.y)}}},
       scales:{y:{title:{display:true,text:'USD/kg'},grid:{color:C.line}},x:{grid:{display:false}}}}
   });
 }
-document.querySelectorAll('.tab[data-view]').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.tab[data-view]').forEach(x=>x.classList.remove('active'));
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   evoView = b.dataset.view;
   renderEvo(getFiltered());
@@ -433,7 +435,7 @@ function renderBars(canvasId, key, rows, color){
     type:'bar',
     data:{labels:items.map(i=>i.k),datasets:[{data:items.map(i=>i.avg),backgroundColor:color,barPercentage:.7}]},
     options:{indexAxis:'y',maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+fmt(c.parsed.x)+' /kg · n='+items[c.dataIndex].n}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+fmt(c.parsed.x)+' /kg'}}},
       scales:{x:{title:{display:true,text:'USD/kg promedio'},grid:{color:C.line}},y:{grid:{display:false},ticks:{font:{size:10}}}}}
   });
 }
@@ -456,7 +458,7 @@ function renderHeatmap(containerId, rowKey, rows, maxRows){
     return nb-na;
   });
   if(maxRows) keys = keys.slice(0,maxRows);
-  let html = '<table class="hm"><tr><th class="rowh">'+(rowKey==='pod'?'POD':rowKey==='combo'?'Ruta · Aerolínea':'Aerolínea')+'</th>';
+  let html = '<table class="hm"><tr><th class="rowh">'+(rowKey==='pod'?'POD':'Aerolínea')+'</th>';
   qs.forEach(q=>html+='<th>'+q.replace('-','<br>')+'</th>');
   html+='<th>Prom.</th></tr>';
   keys.forEach(k=>{
@@ -467,7 +469,7 @@ function renderHeatmap(containerId, rowKey, rows, maxRows){
       const t = byRow[k][q];
       if(!t){html+='<td style="color:#c4cbc6">·</td>';return;}
       const m = mean(t);
-      html += '<td style="'+heatColor(m,base)+'" title="'+k+' '+q+' · n='+t.length+'">'+fmt(m)+'<span class="n">n='+t.length+'</span></td>';
+      html += '<td style="'+heatColor(m,base)+'" title="'+k+' '+q+'">'+fmt(m)+'</td>';
     });
     html += '<td style="font-weight:700">'+fmt(base)+'</td></tr>';
   });
@@ -500,41 +502,40 @@ function renderTableQ(rows){
 /* ───────── render maestro ───────── */
 function renderAll(){
   const rows = getFiltered();
-  const podSel = $('f-pod').value;
-  /* barras de aerolínea ancladas a un destino (el filtrado o el de mayor volumen) */
-  const sc = scopePod(rows);
-  const rowsAir = sc.pod ? rows.filter(r=>r.pod===sc.pod) : [];
-  const scLbl = sc.pod ? ('Destino: '+sc.pod+(sc.auto?' (auto)':'')) : 'sin datos';
-  safe(()=>{ $('tag-air-bars').textContent = scLbl+' · tarifa promedio (barra) · n en tooltip'; });
-  /* heatmap de evolución: filas ruta-aerolínea (o solo aerolínea si hay destino filtrado) */
-  let hmRows, hmKey, hmMax;
-  if(podSel){
-    hmRows = rows; hmKey = 'air'; hmMax = 12;
-    safe(()=>{ $('tag-air-hm').textContent = 'Destino: '+podSel+' · color = nivel del quarter vs. promedio histórico de cada aerolínea en esta ruta'; });
-  } else {
-    hmRows = rows.map(r=>({...r, combo:r.pod+' · '+r.air})); hmKey = 'combo'; hmMax = 15;
-    safe(()=>{ $('tag-air-hm').textContent = 'Filas = ruta · aerolínea (top '+hmMax+' por volumen) · color = nivel del quarter vs. promedio histórico de esa fila'; });
-  }
   safe(()=>renderKPIs(rows));
   safe(()=>renderEvo(rows));
   safe(()=>renderBars('ch-pod','pod',rows,'rgba(14,110,92,.75)'));
-  safe(()=>renderBars('ch-air','air',rowsAir,'rgba(201,84,42,.75)'));
+  safe(()=>renderBars('ch-air','air',rows,'rgba(201,84,42,.75)'));
   safe(()=>renderHeatmap('hm-pod','pod',rows));
-  safe(()=>renderHeatmap('hm-air',hmKey,hmRows,hmMax));
+  safe(()=>renderHeatmap('hm-air','air',rows,12));
   safe(()=>renderTableQ(rows));
 }
-$('f-pod').addEventListener('change',()=>{cascade('pod');renderAll();});
-$('f-air').addEventListener('change',()=>{cascade('air');renderAll();});
-['f-anio','f-status'].forEach(id=>$(id).addEventListener('change',renderAll));
-$('btn-reset').addEventListener('click',()=>{
-  rebuildSelect('f-pod', podsSorted, '');
-  rebuildSelect('f-air', airsSorted, '');
-  $('f-anio').value=''; $('f-status').value='';
-  renderAll();
-});
+['f-pod','f-air','f-anio','f-status'].forEach(id=>$(id).addEventListener('change',renderAll));
+$('btn-reset').addEventListener('click',()=>{['f-pod','f-air','f-anio','f-status'].forEach(id=>$(id).value='');renderAll();});
 safe(()=>renderProj());
-safe(()=>renderGap());
 renderAll();
+
+/* ───────── login gate ───────── */
+(function(){
+  const gate = $('login-gate'), wrap = $('app-wrap');
+  function unlock(){
+    gate.style.display = 'none';
+    wrap.style.visibility = 'visible';
+    try{ sessionStorage.setItem('tarifas_auth','1'); }catch(e){}
+    /* re-render para que los charts midan bien el contenedor ya visible */
+    safe(()=>renderProj());
+    renderAll();
+  }
+  try{ if(sessionStorage.getItem('tarifas_auth')==='1'){ unlock(); return; } }catch(e){}
+  function attempt(){
+    const id = $('login-id').value.trim();
+    const pw = $('login-pw').value;
+    if(id === 'Exportaciones' && pw === '2026'){ unlock(); }
+    else { $('login-err').textContent = 'ID o contraseña incorrectos.'; $('login-pw').value=''; }
+  }
+  $('login-btn').addEventListener('click', attempt);
+  [$('login-id'),$('login-pw')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') attempt(); }));
+})();
 </script>
 </body>
 </html>
