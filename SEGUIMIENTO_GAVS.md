@@ -20,7 +20,7 @@ sin Excel abierto, sin instalar nada.
 |---|---|
 | `seguimiento_gavs.html` | La herramienta final, lista para usar |
 | `gav_template.html` | Plantilla fuente (placeholder `/*__BASELINE__*/`) |
-| `build_gav_tracker.py` | Excel del presupuesto → baseline → HTML |
+| `build_gav_tracker.py` | Hoja `Formato` del presupuesto → baseline → HTML |
 | `gav_baseline.json` | Presupuesto y partidas congelados |
 
 ## La regla de control
@@ -64,10 +64,9 @@ duplica y **✕** la borra. Con los checkbox se seleccionan varias y la barra az
 permite **moverlas de mes**, duplicarlas o borrarlas en bloque. *Restaurar
 original* devuelve ese recurso a las partidas del presupuesto.
 
-Dividir es la herramienta para repartir el saldo grueso: Gastos de Feria y
-Eventos entra con una partida *Por asignar* de USD 1.621 (SAP solo detalla los
-USD 89 de la entrada a Expoalimentaria), y desde ahí se abre en las partidas
-reales que hagan falta.
+Dividir es la herramienta para abrir una partida gruesa en las que hagan falta
+sin pelear con el tope: separa un monto hacia una partida nueva y descuenta el
+resto de la original.
 
 ### Control
 
@@ -106,10 +105,12 @@ Los nueve recursos fuera de foco, por mes, solo como referencia.
 - Control en **USD**. Las líneas en PEN se convierten con el **TC presupuestado
   de cada mes** del propio formato (3,36 → 3,38 de jul-26 a jun-27).
 - **Temporada 26/27 = jul-2026 a jun-2027.** La cola feb–jun 2026 quedó fuera.
-- Los **topes** salen de la hoja `Formato` (fuente autoritativa). Las
-  **partidas** salen de `BD_Opex`, que es donde viven Denominación y Texto de
-  cabecera; donde el detalle de SAP no cubre el tope, la diferencia entra como
-  partida *Por asignar* para que el recurso siempre cuadre.
+- **Todo sale de la hoja `Formato`**, que es la fuente autoritativa: los topes,
+  el reparto mensual y —en las columnas **O (Denominación)** y **P (Texto de
+  cabecera de documento)**— el detalle de cada línea. Cada línea se explota en
+  una partida por mes con cantidad, así que las 63 partidas suman exactamente
+  el tope de cada recurso. `BD_Opex` no se usa para el plan: es un extracto
+  parcial que deja fuera casi todo el detalle de Gastos de Feria y Eventos.
 - La **clase de coste** se muestra siempre por `Descrip.clases coste`, nunca por
   `Denom.clase de coste`: SAP trunca esa columna a 20 caracteres y se presta a
   confusión — «Gastos de Feria» en vez de *Gastos de Feria y Eventos*, «Consumos
@@ -138,7 +139,7 @@ pip install openpyxl
 python build_gav_tracker.py /ruta/al/F01CGPPTO_..._Consolidado.xlsx
 ```
 
-Lee `Formato` (encabezados en la fila 15, TC en la 13) y `BD_Opex`, y reescribe
+Lee la hoja `Formato` (encabezados en la fila 15, TC en la 13) y reescribe
 `gav_baseline.json` y `seguimiento_gavs.html`. Para cambiar los recursos bajo
 control, edita la lista `FOCO` al inicio de `build_gav_tracker.py`.
 

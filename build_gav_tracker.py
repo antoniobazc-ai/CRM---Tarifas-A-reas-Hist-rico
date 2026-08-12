@@ -5,9 +5,9 @@ Pipeline: F01CGPPTO -> baseline JSON -> seguimiento_gavs.html
 Lee el archivo de presupuesto de GAVs/Indirectos de Exportaciones y genera el
 baseline que consume el tracker HTML:
 
-  * hoja `Formato`  -> montos autoritativos por línea y por mes (todo el ppto)
-  * hoja `BD_Opex`  -> partidas con Denominación y Texto de cabecera para los
-                       recursos en foco (el desglose fino que se va a asignar)
+La hoja `Formato` es la única fuente: trae los montos por línea y por mes y,
+en las columnas O y P, la Denominación y el Texto de cabecera de cada línea —
+que es el desglose fino que se asigna en los recursos de FOCO.
 
 El control se concentra en los recursos de FOCO; el resto del presupuesto queda
 como referencia de solo lectura.
@@ -106,6 +106,9 @@ def read_formato(wb):
                 "descripClaseCoste": txt(val(r, "L")),
                 "material": txt(val(r, "M")),
                 "textoMaterial": txt(val(r, "N")),
+                "denominacion": txt(val(r, "O")),
+                "texto": txt(val(r, "P")),
+                "qty": [round(q, 4) for q in qty],
                 "tipo": txt(val(r, "Q")),
                 "umb": txt(val(r, "R")),
                 "pu": round(pu, 6),
@@ -116,60 +119,34 @@ def read_formato(wb):
     return header, [round(x, 4) for x in tc], lines
 
 
-# ---------------------------------------------------------------- hoja BD_Opex
-def read_bdopex(wb, den2rec, cat):
-    """Partidas con Denominación y Texto de cabecera, filtradas a la temporada.
+# ------------------------------------------------------------------- partidas
+def make_parts(lines):
+    """Explota cada línea del Formato en una partida por mes con cantidad.
 
-    `Denom.clase de coste` llega truncada desde SAP ("Gastos de Feria",
-    "Consumos del Persona"), así que la clase de coste se normaliza contra el
-    catálogo del Formato: manda `Descrip.clases coste`.
+    La Denominación (col. O) y el Texto de cabecera (col. P) viven en el
+    Formato, no en BD_Opex: esa hoja es un extracto parcial y deja fuera casi
+    todo el detalle de Gastos de Feria y Eventos.
     """
-    ws = wb["BD_Opex"]
-    rows = list(ws.iter_rows(values_only=True))
-    hdr = [txt(c) for c in rows[0]]
-    ix = {n: i for i, n in enumerate(hdr)}
-
-    need = ["Centro de coste", "Ejercicio", "Período", "Denom.clase de coste", "Val/Mon.so.CO"]
-    missing = [c for c in need if c not in ix]
-    if missing:
-        print(f"[aviso] BD_Opex sin columnas {missing}; no se generan partidas")
-        return []
-
-    get = lambda r, c: txt(r[ix[c]]) if c in ix else ""
     parts = []
-    for r in rows[1:]:
-        if not r[ix["Centro de coste"]]:
+    for l in lines:
+        if l["recurso"] not in FOCO:
             continue
-        try:
-            mes = f"{int(r[ix['Ejercicio']])}_{int(r[ix['Período']]):02d}"
-        except (TypeError, ValueError):
-            continue
-        if mes not in MONTHS:
-            continue
-        den = get(r, "Denom.clase de coste")
-        rec = den2rec.get(den)
-        if rec not in FOCO:
-            continue
-        monto = num(r[ix["Val/Mon.so.CO"]])
-        if abs(monto) < 0.005:
-            continue
-        cc = get(r, "Clase de coste")
-        ref = cat.get(cc.strip()) or {}
-        parts.append(
-            {
-                "id": f"P{len(parts)+1:03d}",
-                "recurso": rec,
-                "mi": MONTHS.index(mes),
-                "claseCoste": cc,
-                "denomClaseCoste": ref.get("denomClaseCoste") or den,
-                "descripClaseCoste": ref.get("descripClaseCoste")
-                or get(r, "Descrip.clases coste")
-                or den,
-                "denominacion": get(r, "Denominación"),
-                "texto": get(r, "Texto de cabecera de documento"),
-                "monto": round(monto, 2),
-            }
-        )
+        for i, monto in enumerate(l["usd"]):
+            if abs(monto) < 0.005:
+                continue
+            parts.append(
+                {
+                    "id": f"P{len(parts)+1:03d}",
+                    "recurso": l["recurso"],
+                    "mi": i,
+                    "claseCoste": l["claseCoste"],
+                    "denomClaseCoste": l["denomClaseCoste"],
+                    "descripClaseCoste": l["descripClaseCoste"] or l["denomClaseCoste"],
+                    "denominacion": l["denominacion"],
+                    "texto": l["texto"],
+                    "monto": round(monto, 2),
+                }
+            )
     return parts
 
 
@@ -177,21 +154,7 @@ def extract(xlsx_path):
     wb = openpyxl.load_workbook(xlsx_path, data_only=True)
     header, tc, lines = read_formato(wb)
 
-    den2rec = {}
-    for l in lines:
-        den2rec.setdefault(l["denomClaseCoste"], l["recurso"])
-
-    cat = {}
-    for l in lines:
-        cat.setdefault(
-            str(l["claseCoste"]).strip(),
-            {
-                "denomClaseCoste": l["denomClaseCoste"],
-                "descripClaseCoste": l["descripClaseCoste"] or l["denomClaseCoste"],
-            },
-        )
-
-    parts = read_bdopex(wb, den2rec, cat)
+    parts = make_parts(lines)
 
     # tope por recurso = el Formato manda
     topes = {r: 0.0 for r in FOCO}
@@ -200,7 +163,8 @@ def extract(xlsx_path):
             topes[l["recurso"]] += sum(l["usd"])
     topes = {k: round(v, 2) for k, v in topes.items()}
 
-    # lo que el detalle de SAP no cubre queda como partida libre "Por asignar"
+    # red de seguridad: si por algo las partidas no cuadran con el tope,
+    # la diferencia entra como partida libre en vez de perderse
     for rec in FOCO:
         cubierto = sum(p["monto"] for p in parts if p["recurso"] == rec)
         resto = round(topes[rec] - cubierto, 2)
@@ -261,8 +225,12 @@ def build(xlsx_path):
     print(f"{p['season']['label']}: {len(p['lines'])} líneas · USD {p['totalPpto']:,.2f}")
     print(f"En foco ({len(FOCO)} recursos): USD {p['totalFoco']:,.2f} · {len(p['parts'])} partidas")
     for r in FOCO:
-        n = sum(1 for x in p["parts"] if x["recurso"] == r)
-        print(f"   {r:28} tope {p['topes'][r]:>9,.2f}  ·  {n:2} partidas")
+        ps = [x for x in p["parts"] if x["recurso"] == r]
+        den = len({x["denominacion"] for x in ps if x["denominacion"]})
+        print(
+            f"   {r:28} tope {p['topes'][r]:>9,.2f}  ·  {len(ps):3} partidas"
+            f"  ·  {den:2} denominaciones  ·  suma {sum(x['monto'] for x in ps):>9,.2f}"
+        )
 
     if TEMPLATE.exists():
         html = TEMPLATE.read_text(encoding="utf-8")

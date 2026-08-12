@@ -309,7 +309,8 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 
 <div class="modal" id="mPaste"><div>
   <h2 style="font-size:16px">Importar extracción de SAP (OPEX)</h2>
-  <p class="hint">Copia desde Excel el rango <b>con la fila de encabezados</b> y pégalo acá. Se leen:
+  <p class="hint">Esto es solo para la <b>ejecución real</b>; el plan ya viene del presupuesto.
+  Copia desde Excel el rango <b>con la fila de encabezados</b> y pégalo acá. Se leen:
   <i>Ejercicio · Período · Clase de coste · <b>Descrip.clases coste</b> · Denom.clase de coste · <b>Denominación</b> ·
   <b>Texto de cabecera de documento</b> · Val/Mon.so.CO · Importe Origen · Moneda Origen · Nº de documento · Fe.contabilización</i>.
   Solo se importan las clases de coste de los tres recursos en foco.</p>
@@ -514,9 +515,9 @@ function resHTML(r){
       <td class="l" style="width:26px"><input type="checkbox" data-sel="${p.id}" ${on?"checked":""}></td>
       <td class="l" style="width:86px"><select class="pin ${p.mi<cur?"past":""}" data-f="mi" data-id="${p.id}">
         ${MONTHS.map((m,i)=>`<option value="${i}" ${i===p.mi?"selected":""}>${mLab(i)}</option>`).join("")}</select></td>
-      <td class="l" style="min-width:170px"><input class="pin" data-f="denominacion" data-id="${p.id}" list="dlDenom" value="${esc(p.denominacion)}" placeholder="Denominación…"></td>
-      <td class="l" style="min-width:250px"><input class="pin" data-f="texto" data-id="${p.id}" list="dlTexto" value="${esc(p.texto)}" placeholder="Texto de cabecera…"></td>
-      <td class="l" style="width:210px"><select class="pin" data-f="cc" data-id="${p.id}">
+      <td class="l" style="min-width:250px"><input class="pin" data-f="denominacion" data-id="${p.id}" list="dlDenom" value="${esc(p.denominacion)}" placeholder="Sin denominación…" title="${esc(p.denominacion)}"></td>
+      <td class="l" style="min-width:240px"><input class="pin" data-f="texto" data-id="${p.id}" list="dlTexto" value="${esc(p.texto)}" placeholder="Sin texto de cabecera…" title="${esc(p.texto)}"></td>
+      <td class="l" style="width:180px"><select class="pin" data-f="cc" data-id="${p.id}">
         ${clases.map(k=>`<option value="${esc(k.cc)}" ${k.cc===p.claseCoste?"selected":""}>${esc(claseLab(k))}</option>`).join("")}</select></td>
       <td class="num" style="width:96px"><input class="pin n" data-f="monto" data-id="${p.id}" value="${(+p.monto||0)?fmt(+p.monto,2):""}" placeholder="0"></td>
       <td class="l" style="width:104px">
