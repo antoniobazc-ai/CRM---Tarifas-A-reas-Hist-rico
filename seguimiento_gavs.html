@@ -250,6 +250,7 @@ svg{display:block;width:100%;height:auto;overflow:visible}
         <button class="btn" id="bPaste">⭱ Importar de SAP</button>
       </div>
       <div class="hint" id="fAviso" style="margin-top:8px"></div>
+      <div class="hint dim" style="margin-top:4px">Solo se registran movimientos de <b>jul-2026 a jun-2027</b>; lo anterior se descarta.</div>
     </div>
 
     <div class="row" style="margin-bottom:8px;justify-content:space-between">
@@ -767,7 +768,7 @@ function addMov(){
   if(!f) return toast("Falta la fecha",1);
   if(!(monto>0)) return toast("Falta el monto",1);
   const mes=f.slice(0,4)+"_"+f.slice(5,7), mi=MONTHS.indexOf(mes);
-  if(mi<0) return toast("Esa fecha está fuera de la temporada 26/27",1);
+  if(mi<0) return toast(`Fuera de la temporada: solo se registra de ${mLab(0)} a ${mLab(NM-1)}`,1);
   const moneda=$("#fMoneda").value, usd = moneda==="PEN" ? monto/tcMes(mi) : monto;
   const k=(BASE.clases[r]||[]).find(c=>c.cc===$("#fClase").value)||{};
   ST.movs.push({id:uid(), fecha:f, mi, recurso:r, claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
@@ -837,7 +838,7 @@ function importSAP(){
   }
   save(); refresh();
   $("#pasteMsg").innerHTML=`<b>${ok}</b> movimientos importados como <i>ejecutado</i>.`+
-    (fuera?` · ${fuera} fuera de la temporada 26/27.`:"")+
+    (fuera?` · ${fuera} descartados por estar fuera de ${mLab(0)}–${mLab(NM-1)}.`:"")+
     (noFoco?` · ${noFoco} de otros recursos (fuera de foco).`:"");
   if(ok) setTimeout(()=>{ $("#mPaste").classList.remove("on"); $("#taPaste").value=""; }, 1800);
 }
@@ -947,6 +948,9 @@ addEventListener("scroll",hideTip,{passive:true});
   $("#g1").onchange=()=>{ ST.g[0]=$("#g1").value; ST.open={}; save(); drawCtrl(); };
   $("#g2").onchange=()=>{ ST.g[1]=$("#g2").value; ST.open={}; save(); drawCtrl(); };
   fillClases();
+  const ini=MONTHS[0].replace("_","-")+"-01";
+  const fin=new Date(Date.UTC(+MONTHS[NM-1].slice(0,4), +MONTHS[NM-1].slice(5,7), 0)).toISOString().slice(0,10);
+  $("#fFecha").min=ini; $("#fFecha").max=fin;
   const hoy=new Date().toISOString().slice(0,10);
   $("#fFecha").value = MONTHS.includes(hoy.slice(0,4)+"_"+hoy.slice(5,7)) ? hoy : MONTHS[CUR()].replace("_","-")+"-01";
   refresh();
