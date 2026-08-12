@@ -39,9 +39,25 @@ recursos, ninguna.
 
 ### Asignación
 
+Arriba, una **barra de meses** con los doce del ejercicio más «Todo»: cada uno
+muestra lo asignado y una barrita de lo consumido, el mes en curso va marcado y
+los cerrados atenuados. Un clic filtra toda la pantalla a ese mes — así ves
+«para este mes tengo esto y esto» sin desplegar las 54 partidas, y sin perder de
+vista cómo viene el resto del año. Al lado, un **buscador** por denominación,
+texto de cabecera o clase de coste, que se combina con el mes.
+
+Con un mes activo, cada recurso muestra un recuadro con *asignado del mes*,
+*ejec.+comp. del mes* y *saldo del mes*, además de sus totales anuales. Las
+partidas nuevas y el «mover en bloque» toman por defecto el mes que estás
+mirando.
+
+El botón **Panorama Mes × Recurso** abre la tabla de los doce meses contra los
+tres recursos, con asignado, ejecutado y saldo de cada mes; se hace clic en un
+mes para saltar a él.
+
 Una tarjeta por recurso con tope, asignado, sin asignar, comprometido,
 ejecutado, disponible, barra de consumo y semáforo; debajo, la tabla de partidas
-editable celda a celda, y al pie el reparto por mes.
+editable celda a celda, y al pie el reparto por mes (también clicable).
 
 Por fila: **÷** divide la partida en dos (preguntando cuánto separar), **⧉** la
 duplica y **✕** la borra. Con los checkbox se seleccionan varias y la barra azul

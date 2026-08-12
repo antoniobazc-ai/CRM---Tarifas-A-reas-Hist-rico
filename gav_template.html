@@ -101,6 +101,25 @@ tr.tot td{font-weight:680;border-top:2px solid var(--axis);background:var(--surf
 .bar>i.e{background:var(--s2)}
 .bar>i.c{background:var(--s3);opacity:.75}
 
+/* ---------- barra de meses ---------- */
+.mbar{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:10px}
+.mchip{flex:none;min-width:76px;background:var(--surface-1);border:1px solid var(--border);border-radius:9px;
+  padding:6px 9px;cursor:pointer;text-align:left;line-height:1.2}
+.mchip:hover{background:var(--wash)}
+.mchip .m{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.mchip .v{display:block;font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums;margin-top:2px}
+.mchip .mb{display:block;height:4px;border-radius:2px;background:var(--grid);margin-top:5px;position:relative;overflow:hidden}
+.mchip .mb>i{position:absolute;left:0;top:0;bottom:0;background:var(--s2)}
+.mchip[aria-pressed=true]{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1);background:var(--wash)}
+.mchip.cur .m{color:var(--s1);font-weight:700}
+.mchip.past{opacity:.62}
+.mchip.past:hover,.mchip[aria-pressed=true]{opacity:1}
+.fbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.mesbox{display:flex;gap:14px;align-items:center;padding:5px 10px;border-radius:8px;background:var(--wash);
+  border:1px solid var(--border);font-size:12px}
+.mesbox b{font-size:15px;font-variant-numeric:tabular-nums}
+.mesbox span{color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;display:block}
+
 /* ---------- asignación ---------- */
 .res{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
 .reshead{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2)}
@@ -121,6 +140,7 @@ select.pin{padding:3px 4px}
 .mini i{font-style:normal;font-size:10.5px;padding:2px 6px;border-radius:5px;background:var(--wash);color:var(--ink-2);font-variant-numeric:tabular-nums}
 .mini i.cur{outline:1.5px solid var(--s1)}
 .mini i.z{opacity:.4}
+.mini i.on{outline:1.5px solid var(--s2);font-weight:650}
 .selbar{display:none;gap:8px;align-items:center;padding:8px 16px;background:var(--sel);border-top:1px solid var(--border);flex-wrap:wrap}
 .selbar.on{display:flex}
 
@@ -181,6 +201,13 @@ svg{display:block;width:100%;height:auto;overflow:visible}
   <!-- ============ ASIGNACIÓN ============ -->
   <section class="view on" id="v-asig">
     <div class="kpis" id="kAsig"></div>
+    <div class="mbar" id="mBar"></div>
+    <div class="fbar">
+      <input type="text" id="qAsig" placeholder="Filtrar por denominación, texto de cabecera o clase de coste…" style="flex:1;min-width:240px">
+      <button class="btn" id="bClearF">Limpiar filtros</button>
+      <button class="btn ghost" id="bPano">Panorama Mes × Recurso</button>
+    </div>
+    <div id="panoWrap" style="display:none;margin-bottom:14px"><div class="tblwrap"><table id="tPano"></table></div></div>
     <div id="resList"></div>
     <p class="hint">
       Dentro de cada recurso puedes hacer lo que quieras: crear partidas, cambiarles el mes, la denominación,
@@ -323,7 +350,7 @@ const GROUPS = [
 let ST = load();
 function load(){
   try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.v===2) return s; }catch(e){}
-  return {v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:["denominacion","texto"], sel:[], theme:null};
+  return {v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:["denominacion","texto"], sel:[], mes:-1, q:"", pano:false, theme:null};
 }
 const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){ toast("No se pudo guardar en este navegador",1); } };
 
@@ -353,6 +380,17 @@ function ejecR(r){
   let e=0,c=0;
   for(const m of ST.movs) if(m.recurso===r) (m.estado==="ejecutado" ? e+=m.usd : c+=m.usd);
   return {e,c};
+}
+function ejecRM(r,mi){
+  let e=0,c=0;
+  for(const m of ST.movs) if(m.recurso===r && m.mi===mi) (m.estado==="ejecutado" ? e+=m.usd : c+=m.usd);
+  return {e,c};
+}
+const asigRM = (r,mi)=>sum(partsOf(r).filter(p=>p.mi===mi).map(p=>+p.monto||0));
+/* ¿la partida pasa el filtro de texto? el filtro de mes se aplica aparte */
+function hitQ(p){
+  const q=norm(ST.q); if(!q) return true;
+  return norm([p.denominacion,p.texto,p.denomClaseCoste,p.descripClaseCoste,p.claseCoste].join(" ")).includes(q);
 }
 function mesAgg(){
   const P=Array(NM).fill(0), E=Array(NM).fill(0), C=Array(NM).fill(0);
@@ -395,21 +433,72 @@ function drawAsig(){
     kpi("Ejecutado","","$"+fmt0(tE), fmt(TOPE?tE/TOPE*100:0,1)+"% del tope"),
     kpi("Comprometido","","$"+fmt0(tC),"pedido, aún no contabilizado"),
     kpi("Disponible real", TOPE-tE-tC<-EPS?"bad":"ok", "$"+fmt0(TOPE-tE-tC), "tope menos ejecutado y comprometido"),
-    kpi("Partidas","",String(ST.parts.length),"líneas de plan que estás manejando"),
+    ST.mes>=0
+      ? kpi(mLab(ST.mes),"accent","$"+fmt0(sum(ST.parts.filter(p=>p.mi===ST.mes).map(p=>+p.monto||0))),
+            "asignado en el mes que estás viendo")
+      : kpi("Partidas","",String(ST.parts.length),"líneas de plan que estás manejando"),
   ].join("");
 
+  drawMBar();
+  $("#qAsig").value=ST.q;
+  $("#panoWrap").style.display = ST.pano ? "" : "none";
+  if(ST.pano) drawPano();
   $("#resList").innerHTML = FOCO.map(r=>resHTML(r)).join("");
   wireAsig();
 }
+function drawMBar(){
+  const cur=CUR(), tot=[], ej=[];
+  for(let i=0;i<NM;i++){
+    tot.push(sum(ST.parts.filter(p=>p.mi===i).map(p=>+p.monto||0)));
+    ej.push(sum(ST.movs.filter(m=>m.mi===i).map(m=>m.usd)));
+  }
+  const chip=(m,lab,v,pct,cls,tip)=>`<button class="mchip ${cls}" data-m="${m}" aria-pressed="${ST.mes===m}" title="${esc(tip)}">
+      <span class="m">${esc(lab)}</span><span class="v">${v}</span>
+      <i class="mb"><i style="width:${Math.min(100,pct)}%"></i></i></button>`;
+  let h=chip(-1,"Todo","$"+fmt0(sum(tot)), sum(tot)?sum(ej)/sum(tot)*100:0, "",
+             `Asignado $${fmt0(sum(tot))} · Ejec.+Comp. $${fmt0(sum(ej))}`);
+  for(let i=0;i<NM;i++)
+    h+=chip(i, mLab(i), "$"+fmt0(tot[i]), tot[i]?ej[i]/tot[i]*100:0,
+            (i===cur?"cur":"")+(i<cur?" past":""),
+            `${mLab(i)} · Asignado $${fmt0(tot[i])} · Ejec.+Comp. $${fmt0(ej[i])}`);
+  $("#mBar").innerHTML=h;
+  $$("#mBar .mchip").forEach(el=>el.onclick=()=>{ ST.mes=+el.dataset.m; ST.sel=[]; save(); drawAsig(); });
+}
+
+function drawPano(){
+  const cur=CUR();
+  let h=`<thead><tr><th class="l">Mes</th>${FOCO.map(r=>`<th class="num">${esc(r)}</th>`).join("")}
+    <th class="num">Asignado</th><th class="num">Ejec.+Comp.</th><th class="num">Saldo del mes</th></tr></thead>`;
+  let b="", T=Array(FOCO.length).fill(0), TA=0, TE=0;
+  for(let i=0;i<NM;i++){
+    const v=FOCO.map(r=>asigRM(r,i));
+    const e=sum(FOCO.map(r=>{const x=ejecRM(r,i);return x.e+x.c;}));
+    const a=sum(v); TA+=a; TE+=e; v.forEach((x,k)=>T[k]+=x);
+    b+=`<tr class="${ST.mes===i?"lvl0":""}" style="${i===cur?"box-shadow:inset 3px 0 0 var(--s1)":""}">
+      <td class="l"><a href="#" data-goto="${i}" style="color:inherit">${esc(mLab(i))}</a>${i===cur?' <span class="badge">en curso</span>':""}</td>
+      ${v.map(x=>`<td class="num ${x<EPS?"dim":""}">${fmt0(x)}</td>`).join("")}
+      <td class="num"><b>${fmt0(a)}</b></td><td class="num">${fmt0(e)}</td>
+      <td class="num ${a-e<-EPS?"neg":""}">${fmt0(a-e)}</td></tr>`;
+  }
+  b+=`<tr class="tot"><td class="l">Total</td>${T.map(x=>`<td class="num">${fmt0(x)}</td>`).join("")}
+    <td class="num">${fmt0(TA)}</td><td class="num">${fmt0(TE)}</td><td class="num">${fmt0(TA-TE)}</td></tr>`;
+  $("#tPano").innerHTML=h+"<tbody>"+b+"</tbody>";
+  $$("#tPano [data-goto]").forEach(el=>el.onclick=ev=>{ ev.preventDefault(); ST.mes=+el.dataset.goto; ST.sel=[]; save(); drawAsig();
+    $("#mBar").scrollIntoView({block:"nearest",behavior:"smooth"}); });
+}
+
 const kpi=(l,cls,v,f)=>`<div class="kpi ${cls}"><div class="lab">${esc(l)}</div><div class="val">${v}</div><div class="foot">${esc(f)}</div></div>`;
 
 function resHTML(r){
   const t=tope(r), a=asigR(r), {e,c}=ejecR(r), libre=t-a, ps=partsOf(r), cur=CUR();
+  const mSel=ST.mes, filtrando = mSel>=0 || !!ST.q;
+  const vis = ps.filter(p=>(mSel<0||p.mi===mSel) && hitQ(p));
+  const mA = mSel>=0 ? asigRM(r,mSel) : 0, mEC = mSel>=0 ? (()=>{const x=ejecRM(r,mSel);return x.e+x.c;})() : 0;
   const mesTot=Array(NM).fill(0); for(const p of ps) if(p.mi>=0&&p.mi<NM) mesTot[p.mi]+=+p.monto||0;
   const clases=BASE.clases[r]||[];
   const nSel=ps.filter(p=>ST.sel.includes(p.id)).length;
 
-  const filas = ps.map(p=>{
+  const filas = vis.map(p=>{
     const on=ST.sel.includes(p.id);
     return `<tr class="${on?"on":""}" data-id="${p.id}">
       <td class="l" style="width:26px"><input type="checkbox" data-sel="${p.id}" ${on?"checked":""}></td>
@@ -429,6 +518,9 @@ function resHTML(r){
   return `<div class="res" data-r="${esc(r)}">
     <div class="reshead">
       <h3>${esc(r)}</h3>
+      ${mSel>=0?`<div class="mesbox"><div><span>${esc(mLab(mSel))} · asignado</span><b>$${fmt0(mA)}</b></div>
+        <div><span>Ejec.+Comp. del mes</span><b>$${fmt0(mEC)}</b></div>
+        <div><span>Saldo del mes</span><b class="${mA-mEC<-EPS?"neg":""}">$${fmt0(mA-mEC)}</b></div></div>`:""}
       <div class="chips">
         <div><span>Tope</span><b>$${fmt0(t)}</b></div>
         <div><span>Asignado</span><b>$${fmt0(a)}</b></div>
@@ -440,17 +532,18 @@ function resHTML(r){
         <div>${semHTML(e+c,t)}</div>
       </div>
     </div>
+    ${filtrando?`<div class="hint" style="padding:6px 16px 0">Mostrando <b>${vis.length}</b> de ${ps.length} partidas del recurso.</div>`:""}
     <div class="tblwrap" style="border:0;border-radius:0;max-height:460px;overflow-y:auto">
       <table class="pt"><thead><tr>
         <th class="l"><input type="checkbox" data-all="${esc(r)}"></th><th class="l">Mes</th>
         <th class="l">Denominación</th><th class="l">Texto de cabecera</th><th class="l">Clase de coste</th>
         <th class="num">Monto USD</th><th class="l"></th></tr></thead>
-      <tbody>${filas||`<tr><td colspan="7" class="l dim" style="padding:12px">Sin partidas. Agrega la primera abajo.</td></tr>`}</tbody></table>
+      <tbody>${filas||`<tr><td colspan="7" class="l dim" style="padding:12px">${filtrando?"Sin partidas que calcen con el filtro"+(mSel>=0?" en "+esc(mLab(mSel)):"")+".":"Sin partidas. Agrega la primera abajo."}</td></tr>`}</tbody></table>
     </div>
     <div class="selbar ${nSel?"on":""}">
       <b>${nSel} seleccionada(s)</b>
       <span class="hint">Mover a</span>
-      <select data-movesel="${esc(r)}">${MONTHS.map((m,i)=>`<option value="${i}" ${i===cur?"selected":""}>${mLab(i)}</option>`).join("")}</select>
+      <select data-movesel="${esc(r)}">${MONTHS.map((m,i)=>`<option value="${i}" ${i===(mSel>=0?mSel:cur)?"selected":""}>${mLab(i)}</option>`).join("")}</select>
       <button class="btn sm" data-doMove="${esc(r)}">Mover</button>
       <button class="btn sm" data-dupSel="${esc(r)}">Duplicar</button>
       <button class="btn sm danger" data-delSel="${esc(r)}">Borrar</button>
@@ -462,7 +555,7 @@ function resHTML(r){
         ${libre>EPS?`<button class="btn sm" data-addlibre="${esc(r)}">+ Partida por el saldo ($${fmt0(libre)})</button>`:""}
         <button class="btn sm ghost" data-restore="${esc(r)}">Restaurar original</button>
       </div>
-      <div class="mini">${mesTot.map((v,i)=>`<i class="${i===cur?"cur":""} ${v<EPS?"z":""}" title="${mLab(i)}">${MES[+MONTHS[i].split("_")[1]-1]} ${v<EPS?"–":fmt0(v)}</i>`).join("")}</div>
+      <div class="mini">${mesTot.map((v,i)=>`<i class="${i===cur?"cur":""} ${v<EPS?"z":""} ${i===mSel?"on":""}" data-jump="${i}" style="cursor:pointer" title="Ver ${mLab(i)}">${MES[+MONTHS[i].split("_")[1]-1]} ${v<EPS?"–":fmt0(v)}</i>`).join("")}</div>
     </div></div>`;
 }
 
@@ -501,10 +594,12 @@ function wireAsig(){
     save(); drawAsig();
   });
   $$("#resList [data-all]").forEach(el=>el.onchange=()=>{
-    const ids=partsOf(el.dataset.all).map(p=>p.id);
+    const ids=partsOf(el.dataset.all).filter(p=>(ST.mes<0||p.mi===ST.mes)&&hitQ(p)).map(p=>p.id);
     ST.sel = el.checked ? [...new Set([...ST.sel,...ids])] : ST.sel.filter(x=>!ids.includes(x));
     save(); drawAsig();
   });
+  $$("#resList [data-jump]").forEach(el=>el.onclick=()=>{ ST.mes=+el.dataset.jump; ST.sel=[]; save(); drawAsig();
+    $("#mBar").scrollIntoView({block:"nearest",behavior:"smooth"}); });
   $$("#resList [data-dup]").forEach(el=>el.onclick=()=>dupPart(el.dataset.dup));
   $$("#resList [data-split]").forEach(el=>el.onclick=()=>splitPart(el.dataset.split));
   $$("#resList [data-del]").forEach(el=>el.onclick=()=>{
@@ -551,7 +646,7 @@ function wireAsig(){
 }
 function addPart(r, monto){
   const k=(BASE.clases[r]||[])[0]||{};
-  ST.parts.push({id:uid(), recurso:r, mi:CUR(), claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
+  ST.parts.push({id:uid(), recurso:r, mi:ST.mes>=0?ST.mes:CUR(), claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
     descripClaseCoste:k.descripClaseCoste||"", denominacion:"", texto:"", monto:Math.round((monto||0)*100)/100});
   save(); refresh();
   const inp=$$(`#resList .res[data-r="${CSS.escape(r)}"] .pin[data-f="denominacion"]`).pop();
@@ -908,6 +1003,10 @@ $$(".tab").forEach(t=>t.onclick=()=>{
   $$(".tab").forEach(x=>x.setAttribute("aria-selected", x===t));
   $$(".view").forEach(v=>v.classList.toggle("on", v.id==="v-"+t.dataset.v));
 });
+let qT;
+$("#qAsig").addEventListener("input",e=>{ clearTimeout(qT); qT=setTimeout(()=>{ ST.q=e.target.value; save(); drawAsig(); },180); });
+$("#bClearF").onclick=()=>{ ST.mes=-1; ST.q=""; ST.sel=[]; save(); drawAsig(); };
+$("#bPano").onclick=()=>{ ST.pano=!ST.pano; save(); drawAsig(); };
 $("#bExpAll").onclick=()=>{ for(const r of FOCO){ ST.open[r]=true;
   for(const p of ST.parts.filter(x=>x.recurso===r)) if(ST.g[0]) ST.open[r+"§"+String(p[ST.g[0]]||"(sin dato)")]=true; }
   save(); drawCtrl(); };
