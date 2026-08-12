@@ -73,8 +73,8 @@ reales que hagan falta.
 
 KPIs, asignado vs. ejecutado por mes, consumo acumulado contra el tope, y la
 tabla por recurso con **agrupación configurable**: los dos selectores «Abrir
-por» arman la jerarquía con Denominación, Texto de cabecera, Denom. clase de
-coste, Descripción clase de coste o Mes, en el orden que quieras.
+por» arman la jerarquía con Denominación, Texto de cabecera, Clase de coste o
+Mes, en el orden que quieras.
 
 Semáforo por recurso: 🔴 consumido sobre el tope · 🟡 del 90 % al 100 % ·
 🟢 bajo el 90 %.
@@ -110,6 +110,12 @@ Los nueve recursos fuera de foco, por mes, solo como referencia.
   **partidas** salen de `BD_Opex`, que es donde viven Denominación y Texto de
   cabecera; donde el detalle de SAP no cubre el tope, la diferencia entra como
   partida *Por asignar* para que el recurso siempre cuadre.
+- La **clase de coste** se muestra siempre por `Descrip.clases coste`, nunca por
+  `Denom.clase de coste`: SAP trunca esa columna a 20 caracteres y se presta a
+  confusión — «Gastos de Feria» en vez de *Gastos de Feria y Eventos*, «Consumos
+  del Persona» en vez de *Consumos del Personal*, «Gs.: Vje./Vuelo naci» en vez
+  de *Gastos de viajes nacionales*. Al importar de SAP la clase se normaliza
+  contra el catálogo del presupuesto usando el número de cuenta.
 - Diferencias de menos de USD 0,5 se tratan como redondeo, no como desvío.
 
 ## Dónde se guarda

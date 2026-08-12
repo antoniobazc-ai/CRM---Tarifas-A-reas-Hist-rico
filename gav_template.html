@@ -310,7 +310,7 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 <div class="modal" id="mPaste"><div>
   <h2 style="font-size:16px">Importar extracción de SAP (OPEX)</h2>
   <p class="hint">Copia desde Excel el rango <b>con la fila de encabezados</b> y pégalo acá. Se leen:
-  <i>Ejercicio · Período · Clase de coste · Denom.clase de coste · Descrip.clases coste · <b>Denominación</b> ·
+  <i>Ejercicio · Período · Clase de coste · <b>Descrip.clases coste</b> · Denom.clase de coste · <b>Denominación</b> ·
   <b>Texto de cabecera de documento</b> · Val/Mon.so.CO · Importe Origen · Moneda Origen · Nº de documento · Fe.contabilización</i>.
   Solo se importan las clases de coste de los tres recursos en foco.</p>
   <textarea id="taPaste" rows="10" placeholder="Pega aquí…"></textarea>
@@ -341,13 +341,13 @@ const GROUPS = [
   {k:"", lab:"— nada —"},
   {k:"denominacion",      lab:"Denominación"},
   {k:"texto",             lab:"Texto de cabecera"},
-  {k:"denomClaseCoste",   lab:"Denom. clase de coste"},
-  {k:"descripClaseCoste", lab:"Descripción clase de coste"},
+  {k:"descripClaseCoste", lab:"Clase de coste"},
   {k:"mes",               lab:"Mes"},
 ];
 
 /* ---------------- estado ---------------- */
 let ST = load();
+ST.g = (ST.g||["denominacion","texto"]).map(k=>GROUPS.some(g=>g.k===k)?k:"");  // sanea agrupadores retirados
 function load(){
   try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.v===2) return s; }catch(e){}
   return {v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:["denominacion","texto"], sel:[], mes:-1, q:"", pano:false, theme:null};
@@ -360,6 +360,9 @@ const mLab = i=>MES[+MONTHS[i].split("_")[1]-1]+" "+MONTHS[i].slice(2,4);
 const esc  = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = s=>String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
 const sum  = a=>a.reduce((x,y)=>x+y,0);
+/* SAP trunca `Denom.clase de coste` ("Gastos de Feria", "Consumos del Persona"),
+   así que en toda la app la clase de coste se muestra por su descripción. */
+const claseLab = x=>x.descripClaseCoste || x.denomClaseCoste || x.claseCoste || "";
 const uid  = ()=>"x"+(Date.now().toString(36))+Math.random().toString(36).slice(2,7);
 
 /* mes en curso dentro de la temporada (-1 antes de empezar, NM si ya cerró) */
@@ -419,7 +422,14 @@ const MAPCC = (()=>{ const m={};
     if(c.denomClaseCoste)   m[norm(c.denomClaseCoste)]=r;
     if(c.descripClaseCoste) m[norm(c.descripClaseCoste)] ??= r;
   } return m; })();
-const recFromSAP = (cc,den,des)=>MAPCC["cc:"+String(cc||"").trim()] || MAPCC[norm(den)] || MAPCC[norm(des)] || null;
+const recFromSAP = (cc,den,des)=>MAPCC["cc:"+String(cc||"").trim()] || MAPCC[norm(des)] || MAPCC[norm(den)] || null;
+/* normaliza la clase de coste contra el catálogo del presupuesto */
+function claseInfo(rec,cc,den,des){
+  const cs=BASE.clases[rec]||[];
+  return cs.find(c=>String(c.cc).trim()===String(cc||"").trim())
+      || cs.find(c=>norm(claseLab(c))===norm(des) || norm(c.denomClaseCoste)===norm(den))
+      || {cc:cc||"", denomClaseCoste:den||"", descripClaseCoste:des||den||""};
+}
 
 /* ================= ASIGNACIÓN ================= */
 function drawAsig(){
@@ -507,7 +517,7 @@ function resHTML(r){
       <td class="l" style="min-width:170px"><input class="pin" data-f="denominacion" data-id="${p.id}" list="dlDenom" value="${esc(p.denominacion)}" placeholder="Denominación…"></td>
       <td class="l" style="min-width:250px"><input class="pin" data-f="texto" data-id="${p.id}" list="dlTexto" value="${esc(p.texto)}" placeholder="Texto de cabecera…"></td>
       <td class="l" style="width:210px"><select class="pin" data-f="cc" data-id="${p.id}">
-        ${clases.map(k=>`<option value="${esc(k.cc)}" ${k.cc===p.claseCoste?"selected":""}>${esc(k.denomClaseCoste)}</option>`).join("")}</select></td>
+        ${clases.map(k=>`<option value="${esc(k.cc)}" ${k.cc===p.claseCoste?"selected":""}>${esc(claseLab(k))}</option>`).join("")}</select></td>
       <td class="num" style="width:96px"><input class="pin n" data-f="monto" data-id="${p.id}" value="${(+p.monto||0)?fmt(+p.monto,2):""}" placeholder="0"></td>
       <td class="l" style="width:104px">
         <button class="btn sm" data-split="${p.id}" title="Dividir esta partida en dos">÷</button>
@@ -567,7 +577,7 @@ function wireAsig(){
       el.onchange=()=>{
         if(f==="mi") p.mi=+el.value;
         if(f==="cc"){ const k=(BASE.clases[p.recurso]||[]).find(c=>c.cc===el.value);
-          if(k){ p.claseCoste=k.cc; p.denomClaseCoste=k.denomClaseCoste; p.descripClaseCoste=k.descripClaseCoste; } }
+          if(k){ p.claseCoste=k.cc; p.denomClaseCoste=k.denomClaseCoste; p.descripClaseCoste=claseLab(k); } }
         save(); refresh();
       };
       return;
@@ -834,7 +844,7 @@ function drawMov(){
   const b=list.map(m=>`<tr>
     <td class="l">${esc(m.fecha||"")}</td><td class="l">${esc(mLab(m.mi))}</td>
     <td class="l">${esc(m.recurso)}${FOCO.includes(m.recurso)?"":' <span class="err">⚠ fuera de foco</span>'}</td>
-    <td class="l">${esc(m.denomClaseCoste||"")}</td>
+    <td class="l">${esc(claseLab(m))}</td>
     <td class="l"><b>${esc(m.denominacion||"—")}</b></td>
     <td class="l" style="white-space:normal;max-width:300px">${esc(m.texto||"")}</td>
     <td class="l">${esc(m.doc||"")}</td>
@@ -856,7 +866,7 @@ const tcMes = i=>BASE.season.tc[i] || BASE.season.tc[0] || 3.36;
 
 function fillClases(){
   const r=$("#fRecurso").value, cs=BASE.clases[r]||[];
-  $("#fClase").innerHTML=cs.map(c=>`<option value="${esc(c.cc)}">${esc(c.denomClaseCoste)}</option>`).join("");
+  $("#fClase").innerHTML=cs.map(c=>`<option value="${esc(c.cc)}">${esc(claseLab(c))}</option>`).join("");
 }
 function addMov(){
   const f=$("#fFecha").value, r=$("#fRecurso").value, monto=parseFloat($("#fMonto").value);
@@ -867,7 +877,7 @@ function addMov(){
   const moneda=$("#fMoneda").value, usd = moneda==="PEN" ? monto/tcMes(mi) : monto;
   const k=(BASE.clases[r]||[]).find(c=>c.cc===$("#fClase").value)||{};
   ST.movs.push({id:uid(), fecha:f, mi, recurso:r, claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
-    descripClaseCoste:k.descripClaseCoste||"", denominacion:$("#fDenom").value.trim(), texto:$("#fTexto").value.trim(),
+    descripClaseCoste:claseLab(k), denominacion:$("#fDenom").value.trim(), texto:$("#fTexto").value.trim(),
     doc:$("#fDoc").value.trim(), estado:$("#fEstado").value, monto, moneda, tc:moneda==="PEN"?tcMes(mi):1,
     usd:Math.round(usd*100)/100, origen:"manual"});
   save();
@@ -926,8 +936,10 @@ function importSAP(){
     const mon=get(row,"mon").toUpperCase();
     if(!usd && idx.orig>=0){ const o=numify(get(row,"orig")); usd = mon==="PEN" ? o/tcMes(mi) : o; }
     if(Math.abs(usd)<0.005) continue;
-    ST.movs.push({id:uid(), fecha:get(row,"fec"), mi, recurso:rec, claseCoste:cc, denomClaseCoste:den,
-      descripClaseCoste:des, denominacion:get(row,"nom"), texto:get(row,"txt"), doc:get(row,"doc"),
+    const K=claseInfo(rec,cc,den,des);
+    ST.movs.push({id:uid(), fecha:get(row,"fec"), mi, recurso:rec, claseCoste:K.cc,
+      denomClaseCoste:K.denomClaseCoste, descripClaseCoste:claseLab(K),
+      denominacion:get(row,"nom"), texto:get(row,"txt"), doc:get(row,"doc"),
       estado:"ejecutado", monto:usd, moneda:"USD", tc:1, usd:Math.round(usd*100)/100, origen:"sap"});
     ok++;
   }
@@ -942,15 +954,16 @@ function importSAP(){
 function drawResto(){
   const otros=BASE.lines.filter(l=>!FOCO.includes(l.recurso));
   const by={};
-  for(const l of otros){ (by[l.recurso] ||= {t:0,d:{}}); by[l.recurso].t+=sum(l.usd);
-    (by[l.recurso].d[l.denomClaseCoste] ||= {t:0,m:Array(NM).fill(0)});
-    by[l.recurso].d[l.denomClaseCoste].t+=sum(l.usd);
-    l.usd.forEach((v,i)=>by[l.recurso].d[l.denomClaseCoste].m[i]+=v); }
+  for(const l of otros){ const d=claseLab(l);
+    (by[l.recurso] ||= {t:0,d:{}}); by[l.recurso].t+=sum(l.usd);
+    (by[l.recurso].d[d] ||= {t:0,m:Array(NM).fill(0)});
+    by[l.recurso].d[d].t+=sum(l.usd);
+    l.usd.forEach((v,i)=>by[l.recurso].d[d].m[i]+=v); }
   const tot=sum(Object.values(by).map(x=>x.t));
   $("#restoSub").innerHTML=`El presupuesto completo de la temporada es <b>$${fmt0(BASE.totalPpto)}</b>.
     Esta herramienta gestiona <b>$${fmt0(BASE.totalFoco)}</b> (${FOCO.join(", ")}).
     Los <b>$${fmt0(tot)}</b> restantes quedan acá solo como referencia.`;
-  let h=`<thead><tr><th class="l">Recurso / Denom. clase de coste</th>`;
+  let h=`<thead><tr><th class="l">Recurso / Clase de coste</th>`;
   for(let i=0;i<NM;i++) h+=`<th class="num">${MES[+MONTHS[i].split("_")[1]-1]}</th>`;
   h+=`<th class="num">Total</th></tr></thead>`;
   let b="";
@@ -985,11 +998,11 @@ function exportJSON(){
 function exportCSV(){
   const L=[];
   L.push("PARTIDAS ASIGNADAS");
-  L.push(["Recurso","Mes","Denominación","Texto de cabecera","Clase de coste","Denom. clase de coste","Monto USD"].join(";"));
-  for(const p of ST.parts) L.push([p.recurso,mLab(p.mi),cs(p.denominacion),cs(p.texto),p.claseCoste,cs(p.denomClaseCoste),(+p.monto||0).toFixed(2)].join(";"));
+  L.push(["Recurso","Mes","Denominación","Texto de cabecera","Cta. clase de coste","Clase de coste","Monto USD"].join(";"));
+  for(const p of ST.parts) L.push([p.recurso,mLab(p.mi),cs(p.denominacion),cs(p.texto),p.claseCoste,cs(claseLab(p)),(+p.monto||0).toFixed(2)].join(";"));
   L.push("","MOVIMIENTOS");
   L.push(["Fecha","Mes","Recurso","Clase de coste","Denominación","Texto de cabecera","Doc","Estado","Monto origen","Moneda","USD","Origen"].join(";"));
-  for(const m of ST.movs) L.push([m.fecha,mLab(m.mi),m.recurso,cs(m.denomClaseCoste),cs(m.denominacion),cs(m.texto),m.doc,m.estado,(+m.monto||0).toFixed(2),m.moneda,m.usd.toFixed(2),m.origen].join(";"));
+  for(const m of ST.movs) L.push([m.fecha,mLab(m.mi),m.recurso,cs(claseLab(m)),cs(m.denominacion),cs(m.texto),m.doc,m.estado,(+m.monto||0).toFixed(2),m.moneda,m.usd.toFixed(2),m.origen].join(";"));
   L.push("","RESUMEN POR RECURSO");
   L.push(["Recurso","Tope","Asignado","Comprometido","Ejecutado","Disponible"].join(";"));
   for(const r of FOCO){ const {e,c}=ejecR(r); L.push([r,tope(r).toFixed(2),asigR(r).toFixed(2),c.toFixed(2),e.toFixed(2),(tope(r)-e-c).toFixed(2)].join(";")); }

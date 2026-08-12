@@ -117,8 +117,13 @@ def read_formato(wb):
 
 
 # ---------------------------------------------------------------- hoja BD_Opex
-def read_bdopex(wb, den2rec):
-    """Partidas con Denominación y Texto de cabecera, filtradas a la temporada."""
+def read_bdopex(wb, den2rec, cat):
+    """Partidas con Denominación y Texto de cabecera, filtradas a la temporada.
+
+    `Denom.clase de coste` llega truncada desde SAP ("Gastos de Feria",
+    "Consumos del Persona"), así que la clase de coste se normaliza contra el
+    catálogo del Formato: manda `Descrip.clases coste`.
+    """
     ws = wb["BD_Opex"]
     rows = list(ws.iter_rows(values_only=True))
     hdr = [txt(c) for c in rows[0]]
@@ -148,14 +153,18 @@ def read_bdopex(wb, den2rec):
         monto = num(r[ix["Val/Mon.so.CO"]])
         if abs(monto) < 0.005:
             continue
+        cc = get(r, "Clase de coste")
+        ref = cat.get(cc.strip()) or {}
         parts.append(
             {
                 "id": f"P{len(parts)+1:03d}",
                 "recurso": rec,
                 "mi": MONTHS.index(mes),
-                "claseCoste": get(r, "Clase de coste"),
-                "denomClaseCoste": den,
-                "descripClaseCoste": get(r, "Descrip.clases coste"),
+                "claseCoste": cc,
+                "denomClaseCoste": ref.get("denomClaseCoste") or den,
+                "descripClaseCoste": ref.get("descripClaseCoste")
+                or get(r, "Descrip.clases coste")
+                or den,
                 "denominacion": get(r, "Denominación"),
                 "texto": get(r, "Texto de cabecera de documento"),
                 "monto": round(monto, 2),
@@ -172,7 +181,17 @@ def extract(xlsx_path):
     for l in lines:
         den2rec.setdefault(l["denomClaseCoste"], l["recurso"])
 
-    parts = read_bdopex(wb, den2rec)
+    cat = {}
+    for l in lines:
+        cat.setdefault(
+            str(l["claseCoste"]).strip(),
+            {
+                "denomClaseCoste": l["denomClaseCoste"],
+                "descripClaseCoste": l["descripClaseCoste"] or l["denomClaseCoste"],
+            },
+        )
+
+    parts = read_bdopex(wb, den2rec, cat)
 
     # tope por recurso = el Formato manda
     topes = {r: 0.0 for r in FOCO}
@@ -214,7 +233,11 @@ def extract(xlsx_path):
                 continue
             seen.add(k)
             out.append(
-                {"cc": k[0], "denomClaseCoste": k[1], "descripClaseCoste": k[2]}
+                {
+                    "cc": k[0],
+                    "denomClaseCoste": k[1],
+                    "descripClaseCoste": k[2] or k[1],  # la descripción es la etiqueta
+                }
             )
         clases[rec] = out
 
