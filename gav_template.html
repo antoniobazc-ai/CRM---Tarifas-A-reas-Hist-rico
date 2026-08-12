@@ -123,6 +123,13 @@ tr.tot td{font-weight:680;border-top:2px solid var(--axis);background:var(--surf
 .mchip.past{opacity:.62}
 .mchip.past:hover,.mchip[aria-pressed=true]{opacity:1}
 .fbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.fchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.fchip{display:inline-flex;align-items:center;gap:6px;background:var(--wash);border:1px solid var(--s1);
+  border-radius:20px;padding:3px 6px 3px 10px;font-size:12px;white-space:nowrap}
+.fchip button{border:0;background:none;cursor:pointer;color:var(--ink-2);font-size:13px;line-height:1;padding:0 3px}
+.fchip button:hover{color:var(--crit-ink)}
+.nores{padding:12px 16px;font-size:13px;color:var(--ink-2)}
+.nores b{color:var(--ink)}
 .mesbox{display:flex;gap:14px;align-items:center;padding:5px 10px;border-radius:8px;background:var(--wash);
   border:1px solid var(--border);font-size:12px}
 .mesbox b{font-size:15px;font-variant-numeric:tabular-nums}
@@ -214,6 +221,7 @@ svg{display:block;width:100%;height:auto;overflow:visible}
     <div class="mbar" id="mBar"></div>
     <div class="fbar">
       <input type="text" id="qAsig" placeholder="Filtrar por denominación, texto de cabecera o clase de coste…" style="flex:1;min-width:240px">
+      <span class="fchips" id="fChips"></span>
       <button class="btn" id="bClearF">Limpiar filtros</button>
       <button class="btn ghost" id="bPano">Panorama Mes × Recurso</button>
     </div>
@@ -463,6 +471,7 @@ function drawAsig(){
 
   drawMBar();
   $("#qAsig").value=ST.q;
+  drawFChips();
   $("#panoWrap").style.display = ST.pano ? "" : "none";
   if(ST.pano) drawPano();
   $("#resList").innerHTML = FOCO.map(r=>resHTML(r)).join("");
@@ -485,6 +494,18 @@ function drawMBar(){
             `${mLab(i)} · Asignado $${fmt0(tot[i])} · Ejec.+Comp. $${fmt0(ej[i])}`);
   $("#mBar").innerHTML=h;
   $$("#mBar .mchip").forEach(el=>el.onclick=()=>{ ST.mes=+el.dataset.m; ST.sel=[]; save(); drawAsig(); });
+}
+
+function drawFChips(){
+  const c=[];
+  if(ST.mes>=0) c.push(`<span class="fchip">Mes: <b>${esc(mLab(ST.mes))}</b><button data-x="mes" title="Quitar el filtro de mes">✕</button></span>`);
+  if(ST.q)      c.push(`<span class="fchip">Texto: <b>«${esc(ST.q)}»</b><button data-x="q" title="Quitar la búsqueda">✕</button></span>`);
+  $("#fChips").innerHTML = c.length ? "Filtrando por "+c.join(" ") : "";
+  $("#bClearF").style.display = c.length ? "" : "none";
+  $$("#fChips [data-x]").forEach(el=>el.onclick=()=>{
+    if(el.dataset.x==="mes") ST.mes=-1; else ST.q="";
+    ST.sel=[]; save(); drawAsig();
+  });
 }
 
 function drawPano(){
@@ -514,7 +535,9 @@ const kpi=(l,cls,v,f)=>`<div class="kpi ${cls}"><div class="lab">${esc(l)}</div>
 function resHTML(r){
   const t=tope(r), a=asigR(r), {e,c}=ejecR(r), libre=t-a, ps=partsOf(r), cur=CUR();
   const mSel=ST.mes, filtrando = mSel>=0 || !!ST.q;
-  const vis = ps.filter(p=>(mSel<0||p.mi===mSel) && hitQ(p));
+  const porTexto = ps.filter(hitQ);                        // pasa el texto, en cualquier mes
+  const vis = porTexto.filter(p=>mSel<0||p.mi===mSel);     // ...y además el mes elegido
+  const otrosMeses = mSel>=0 ? porTexto.filter(p=>p.mi!==mSel) : [];
   const mA = mSel>=0 ? asigRM(r,mSel) : 0, mEC = mSel>=0 ? (()=>{const x=ejecRM(r,mSel);return x.e+x.c;})() : 0;
   const mesTot=Array(NM).fill(0); for(const p of ps) if(p.mi>=0&&p.mi<NM) mesTot[p.mi]+=+p.monto||0;
   const clases=BASE.clases[r]||[];
@@ -554,13 +577,22 @@ function resHTML(r){
         <div>${semHTML(e+c,t)}</div>
       </div>
     </div>
-    ${filtrando?`<div class="hint" style="padding:6px 16px 0">Mostrando <b>${vis.length}</b> de ${ps.length} partidas del recurso.</div>`:""}
+    ${filtrando?`<div class="hint" style="padding:6px 16px 0">Mostrando <b>${vis.length}</b> de ${ps.length} partidas del recurso.${
+        vis.length&&otrosMeses.length?` Hay <b>${otrosMeses.length}</b> más en ${esc([...new Set(otrosMeses.map(x=>mLab(x.mi)))].join(", "))} ·
+          <a href="#" data-verano="1" style="color:var(--s1)">ver todo el año</a>`:""}</div>`:""}
     <div class="tblwrap" style="border:0;border-radius:0;max-height:460px;overflow-y:auto">
       <table class="pt"><thead><tr>
         <th class="l"><input type="checkbox" data-all="${esc(r)}"></th><th class="l">Mes</th>
         <th class="l">Denominación</th><th class="l">Texto de cabecera</th><th class="l">Clase de coste</th>
         <th class="num">Monto USD</th><th class="l"></th></tr></thead>
-      <tbody>${filas||`<tr><td colspan="7" class="l dim" style="padding:12px">${filtrando?"Sin partidas que calcen con el filtro"+(mSel>=0?" en "+esc(mLab(mSel)):"")+".":"Sin partidas. Agrega la primera abajo."}</td></tr>`}</tbody></table>
+      <tbody>${filas||`<tr><td colspan="7" class="l"><div class="nores">${
+        otrosMeses.length
+          ? `Nada en <b>${esc(mLab(mSel))}</b>, pero hay <b>${otrosMeses.length}</b> partida(s) que calzan en
+             ${esc([...new Set(otrosMeses.map(x=>mLab(x.mi)))].join(", "))}.
+             <button class="btn sm" data-verano="1" style="margin-left:6px">Ver todo el año</button>`
+          : filtrando ? `Sin partidas que calcen con el filtro${mSel>=0?" en <b>"+esc(mLab(mSel))+"</b>":""}.`
+                      : "Sin partidas. Agrega la primera abajo."
+      }</div></td></tr>`}</tbody></table>
     </div>
     <div class="selbar ${nSel?"on":""}">
       <b>${nSel} seleccionada(s)</b>
@@ -621,6 +653,7 @@ function wireAsig(){
     ST.sel = el.checked ? [...new Set([...ST.sel,...ids])] : ST.sel.filter(x=>!ids.includes(x));
     save(); drawAsig();
   });
+  $$("#resList [data-verano]").forEach(el=>el.onclick=ev=>{ ev.preventDefault(); ST.mes=-1; ST.sel=[]; save(); drawAsig(); });
   $$("#resList [data-jump]").forEach(el=>el.onclick=()=>{ ST.mes=+el.dataset.jump; ST.sel=[]; save(); drawAsig();
     $("#mBar").scrollIntoView({block:"nearest",behavior:"smooth"}); });
   $$("#resList [data-dup]").forEach(el=>el.onclick=()=>dupPart(el.dataset.dup));

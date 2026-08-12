@@ -46,6 +46,12 @@ los cerrados atenuados. Un clic filtra toda la pantalla a ese mes — así ves
 vista cómo viene el resto del año. Al lado, un **buscador** por denominación,
 texto de cabecera o clase de coste, que se combina con el mes.
 
+Los filtros activos se muestran como chips («Mes: Dic 26», «Texto: catering»)
+con su ✕ para quitarlos por separado, porque quedan guardados entre sesiones.
+Si una búsqueda no da resultados en el mes elegido pero sí en otros, lo dice y
+ofrece **Ver todo el año** en vez de dejarte con una tabla vacía; y si da
+resultados, avisa cuántos más hay en los demás meses.
+
 Con un mes activo, cada recurso muestra un recuadro con *asignado del mes*,
 *ejec.+comp. del mes* y *saldo del mes*, además de sus totales anuales. Las
 partidas nuevas y el «mover en bloque» toman por defecto el mes que estás
