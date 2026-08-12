@@ -101,6 +101,14 @@ tr.tot td{font-weight:680;border-top:2px solid var(--axis);background:var(--surf
 .bar>i.e{background:var(--s2)}
 .bar>i.c{background:var(--s3);opacity:.75}
 
+/* ---------- aviso de baseline desactualizado ---------- */
+.banner{display:none;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+  background:rgba(250,178,25,.13);border:1px solid rgba(250,178,25,.5);border-radius:var(--radius);
+  padding:12px 14px;margin-bottom:14px}
+.banner.on{display:flex}
+.banner b.t{display:block;margin-bottom:3px;color:var(--ink);font-size:14px}
+.banner .txt{font-size:13px;color:var(--ink-2);max-width:78ch;line-height:1.5}
+
 /* ---------- barra de meses ---------- */
 .mbar{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:10px}
 .mchip{flex:none;min-width:76px;background:var(--surface-1);border:1px solid var(--border);border-radius:9px;
@@ -190,6 +198,8 @@ svg{display:block;width:100%;height:auto;overflow:visible}
       <button class="btn ghost" id="bReset" title="Borrar todo y volver al presupuesto original">⟲</button>
     </div>
   </div>
+
+  <div class="banner" id="banner"></div>
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-v="asig" aria-selected="true">Asignación</button>
@@ -351,8 +361,9 @@ let ST = load();
 ST.g = (ST.g||["denominacion","texto"]).map(k=>GROUPS.some(g=>g.k===k)?k:"");  // sanea agrupadores retirados
 function load(){
   try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.v===2) return s; }catch(e){}
-  return {v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:["denominacion","texto"], sel:[], mes:-1, q:"", pano:false, theme:null};
+  return {v:2, stamp:BASE.stamp, dirty:false, parts:structuredClone(BASE.parts), movs:[], open:{}, g:["denominacion","texto"], sel:[], mes:-1, q:"", pano:false, theme:null};
 }
+const touch = ()=>{ ST.dirty=true; };
 const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){ toast("No se pudo guardar en este navegador",1); } };
 
 const fmt  = (n,d=0)=>(n==null||isNaN(n))?"–":n.toLocaleString("es-PE",{minimumFractionDigits:d,maximumFractionDigits:d});
@@ -576,6 +587,7 @@ function wireAsig(){
     const f=el.dataset.f;
     if(el.tagName==="SELECT"){
       el.onchange=()=>{
+        touch();
         if(f==="mi") p.mi=+el.value;
         if(f==="cc"){ const k=(BASE.clases[p.recurso]||[]).find(c=>c.cc===el.value);
           if(k){ p.claseCoste=k.cc; p.denomClaseCoste=k.denomClaseCoste; p.descripClaseCoste=claseLab(k); } }
@@ -592,11 +604,11 @@ function wireAsig(){
         const resto=sum(partsOf(p.recurso).filter(x=>x.id!==p.id).map(x=>+x.monto||0));
         const max=tope(p.recurso)-resto;
         if(v>max+EPS){ v=Math.max(0,max); toast(`Tope de «${p.recurso}»: máximo $${fmt(max,2)} en esta partida. Se ajustó al disponible.`,1); }
-        p.monto=Math.round(v*100)/100; save(); refresh();
+        touch(); p.monto=Math.round(v*100)/100; save(); refresh();
       };
       return;
     }
-    el.onchange=()=>{ p[f]=el.value.trim(); save(); drawCtrl(); fillDatalists(); };
+    el.onchange=()=>{ touch(); p[f]=el.value.trim(); save(); drawCtrl(); fillDatalists(); };
   });
 
   $$("#resList [data-sel]").forEach(el=>el.onchange=()=>{
@@ -614,7 +626,7 @@ function wireAsig(){
   $$("#resList [data-dup]").forEach(el=>el.onclick=()=>dupPart(el.dataset.dup));
   $$("#resList [data-split]").forEach(el=>el.onclick=()=>splitPart(el.dataset.split));
   $$("#resList [data-del]").forEach(el=>el.onclick=()=>{
-    ST.parts=ST.parts.filter(p=>p.id!==el.dataset.del); ST.sel=ST.sel.filter(x=>x!==el.dataset.del); save(); refresh(); });
+    touch(); ST.parts=ST.parts.filter(p=>p.id!==el.dataset.del); ST.sel=ST.sel.filter(x=>x!==el.dataset.del); save(); refresh(); });
   $$("#resList [data-add]").forEach(el=>el.onclick=()=>addPart(el.dataset.add,0));
   $$("#resList [data-addlibre]").forEach(el=>el.onclick=()=>{
     const r=el.dataset.addlibre; addPart(r, Math.max(0,tope(r)-asigR(r))); });
@@ -622,12 +634,13 @@ function wireAsig(){
     const r=el.dataset.restore;
     if(!confirm(`¿Devolver «${r}» a las partidas originales del presupuesto? Se pierde lo que hayas asignado en ese recurso.`)) return;
     ST.parts=[...ST.parts.filter(p=>p.recurso!==r), ...structuredClone(BASE.parts.filter(p=>p.recurso===r))];
-    save(); refresh(); toast(`«${r}» restaurado`);
+    ST.stamp=BASE.stamp; save(); refresh(); $("#banner").className="banner"; toast(`«${r}» restaurado`);
   });
   $$("#resList [data-doMove]").forEach(el=>el.onclick=()=>{
     const r=el.dataset.domove ?? el.getAttribute("data-doMove");
     const mi=+$(`[data-movesel="${CSS.escape(r)}"]`).value;
     let n=0; for(const p of ST.parts) if(p.recurso===r && ST.sel.includes(p.id)){ p.mi=mi; n++; }
+    if(n) touch();
     ST.sel=ST.sel.filter(id=>!partsOf(r).some(p=>p.id===id)); save(); refresh();
     toast(n?`${n} partida(s) movidas a ${mLab(mi)}`:"No había partidas seleccionadas",n?0:1);
   });
@@ -638,7 +651,7 @@ function wireAsig(){
     let libre=tope(r)-asigR(r), n=0;
     for(const id of ids){ if(libre<=EPS) break; const src=ST.parts.find(p=>p.id===id);
       const monto=Math.min(+src.monto||0, libre);
-      ST.parts.push({...src, id:uid(), monto:Math.round(monto*100)/100}); libre-=monto; n++; }
+      ST.parts.push({...src, id:uid(), monto:Math.round(monto*100)/100}); libre-=monto; n++; touch(); }
     save(); refresh();
     toast(n<ids.length ? `${n} de ${ids.length} duplicadas; el resto no entraba en el tope` : `${n} partida(s) duplicadas`, n<ids.length?1:0);
   });
@@ -647,7 +660,7 @@ function wireAsig(){
     const ids=partsOf(r).filter(p=>ST.sel.includes(p.id)).map(p=>p.id);
     if(!ids.length) return toast("No había partidas seleccionadas",1);
     if(!confirm(`¿Borrar ${ids.length} partida(s) de «${r}»?`)) return;
-    ST.parts=ST.parts.filter(p=>!ids.includes(p.id)); ST.sel=ST.sel.filter(x=>!ids.includes(x));
+    touch(); ST.parts=ST.parts.filter(p=>!ids.includes(p.id)); ST.sel=ST.sel.filter(x=>!ids.includes(x));
     save(); refresh(); toast(`${ids.length} partida(s) borradas`);
   });
   $$("#resList [data-clrSel]").forEach(el=>el.onclick=()=>{
@@ -659,6 +672,7 @@ function addPart(r, monto){
   const k=(BASE.clases[r]||[])[0]||{};
   ST.parts.push({id:uid(), recurso:r, mi:ST.mes>=0?ST.mes:CUR(), claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
     descripClaseCoste:k.descripClaseCoste||"", denominacion:"", texto:"", monto:Math.round((monto||0)*100)/100});
+  touch();
   save(); refresh();
   const inp=$$(`#resList .res[data-r="${CSS.escape(r)}"] .pin[data-f="denominacion"]`).pop();
   if(inp){ inp.focus(); inp.scrollIntoView({block:"center",behavior:"smooth"}); }
@@ -676,14 +690,14 @@ function splitPart(id){
   v=Math.round(v*100)/100;
   src.monto=Math.round((total-v)*100)/100;
   const i=ST.parts.findIndex(p=>p.id===id);
-  ST.parts.splice(i+1,0,{...src, id:uid(), monto:v});
+  touch(); ST.parts.splice(i+1,0,{...src, id:uid(), monto:v});
   save(); refresh();
 }
 function dupPart(id){
   const src=ST.parts.find(p=>p.id===id); if(!src) return;
   const libre=tope(src.recurso)-asigR(src.recurso);
   if(libre<=EPS) return toast(`«${src.recurso}» no tiene saldo libre: la copia entraría en 0`,1);
-  ST.parts.push({...src, id:uid(), monto:Math.round(Math.min(+src.monto||0,libre)*100)/100});
+  touch(); ST.parts.push({...src, id:uid(), monto:Math.round(Math.min(+src.monto||0,libre)*100)/100});
   save(); refresh();
 }
 
@@ -990,6 +1004,31 @@ function fillDatalists(){
   $("#dlDenom").innerHTML=[...dn].sort((a,b)=>a.localeCompare(b,"es")).map(v=>`<option value="${esc(v)}">`).join("");
   $("#dlTexto").innerHTML=[...dt].sort((a,b)=>a.localeCompare(b,"es")).map(v=>`<option value="${esc(v)}">`).join("");
 }
+/* El plan vive en el navegador: si se regenera el HTML con un presupuesto
+   distinto, hay que resembrar las partidas sin pisar los movimientos. */
+function reseed(){
+  ST.parts=structuredClone(BASE.parts); ST.stamp=BASE.stamp; ST.dirty=false; ST.sel=[];
+  save(); refresh(); $("#banner").className="banner";
+  toast(`Partidas actualizadas: ahora son ${BASE.parts.length} del presupuesto vigente`);
+}
+function checkStamp(){
+  if(ST.stamp===BASE.stamp) return;
+  if(ST.stamp && !ST.dirty) return reseed();      // no habías tocado nada: se actualiza solo
+  const b=$("#banner");
+  b.innerHTML=`<div class="txt"><b class="t">El presupuesto base cambió</b>
+      Tienes <b>${ST.parts.length} partida(s)</b> guardadas en este navegador de una versión anterior.
+      El presupuesto vigente trae <b>${BASE.parts.length} partidas</b> con la Denominación y el Texto de
+      cabecera de la hoja Formato. Actualizar reemplaza el plan; <b>los ${ST.movs.length} movimiento(s)
+      cargados no se tocan</b>.</div>
+    <div class="toolbar">
+      <button class="btn primary" id="bReseed">Actualizar partidas</button>
+      <button class="btn ghost" id="bKeep">Seguir con las mías</button>
+    </div>`;
+  b.className="banner on";
+  $("#bReseed").onclick=reseed;
+  $("#bKeep").onclick=()=>{ ST.stamp=BASE.stamp; ST.dirty=true; save(); b.className="banner"; };
+}
+
 function refresh(){ drawAsig(); drawCtrl(); drawMov(); drawResto(); fillDatalists(); avisoDisp(); }
 
 function exportJSON(){
@@ -1039,10 +1078,11 @@ $("#bImport").onclick=()=>$("#fileIn").click();
 $("#fileIn").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader();
   rd.onload=()=>{ try{ const j=JSON.parse(rd.result), s=j.state||j;
     if(!s||!Array.isArray(s.movs)||!Array.isArray(s.parts)) throw 0;
-    ST={...s, v:2, sel:[]}; save(); refresh(); toast("Respaldo restaurado");
+    ST={...s, v:2, sel:[]}; ST.g=(ST.g||[]).map(k=>GROUPS.some(g=>g.k===k)?k:""); save(); refresh(); checkStamp(); toast("Respaldo restaurado");
   }catch(err){ toast("Archivo no válido",1); } }; rd.readAsText(f); e.target.value=""; };
 $("#bReset").onclick=()=>{ if(!confirm("Vuelve a las partidas originales del presupuesto y borra todos los movimientos cargados. ¿Seguro?")) return;
-  ST={v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:ST.g, sel:[], theme:ST.theme}; save(); refresh(); toast("Todo restaurado"); };
+  ST={v:2, stamp:BASE.stamp, dirty:false, parts:structuredClone(BASE.parts), movs:[], open:{}, g:ST.g, sel:[], mes:-1, q:"", pano:false, theme:ST.theme};
+  save(); refresh(); $("#banner").className="banner"; toast("Todo restaurado"); };
 $("#bTheme").onclick=()=>{ const cur=document.documentElement.getAttribute("data-theme");
   const next = cur==="dark" ? "light" : cur==="light" ? null : "dark";
   next ? document.documentElement.setAttribute("data-theme",next) : document.documentElement.removeAttribute("data-theme");
@@ -1061,6 +1101,7 @@ addEventListener("scroll",hideTip,{passive:true});
   $("#g1").onchange=()=>{ ST.g[0]=$("#g1").value; ST.open={}; save(); drawCtrl(); };
   $("#g2").onchange=()=>{ ST.g[1]=$("#g2").value; ST.open={}; save(); drawCtrl(); };
   fillClases();
+  checkStamp();
   const ini=MONTHS[0].replace("_","-")+"-01";
   const fin=new Date(Date.UTC(+MONTHS[NM-1].slice(0,4), +MONTHS[NM-1].slice(5,7), 0)).toISOString().slice(0,10);
   $("#fFecha").min=ini; $("#fFecha").max=fin;

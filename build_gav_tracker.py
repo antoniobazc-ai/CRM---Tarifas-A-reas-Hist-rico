@@ -16,6 +16,7 @@ Uso:
     python build_gav_tracker.py /ruta/al/F01CGPPTO_..._Consolidado.xlsx
 """
 
+import hashlib
 import json
 import re
 import sys
@@ -205,8 +206,14 @@ def extract(xlsx_path):
             )
         clases[rec] = out
 
+    # huella del plan base: si cambia, la app avisa que hay que resembrar
+    stamp = hashlib.sha1(
+        json.dumps([topes, parts], ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()[:12]
+
     return {
         "header": header,
+        "stamp": stamp,
         "season": {**SEASON, "months": MONTHS, "tc": tc},
         "foco": FOCO,
         "topes": topes,
@@ -223,7 +230,8 @@ def build(xlsx_path):
     OUT_JSON.write_text(json.dumps(p, ensure_ascii=False, indent=1), encoding="utf-8")
 
     print(f"{p['season']['label']}: {len(p['lines'])} líneas · USD {p['totalPpto']:,.2f}")
-    print(f"En foco ({len(FOCO)} recursos): USD {p['totalFoco']:,.2f} · {len(p['parts'])} partidas")
+    print(f"En foco ({len(FOCO)} recursos): USD {p['totalFoco']:,.2f} · "
+          f"{len(p['parts'])} partidas · huella {p['stamp']}")
     for r in FOCO:
         ps = [x for x in p["parts"] if x["recurso"] == r]
         den = len({x["denominacion"] for x in ps if x["denominacion"]})

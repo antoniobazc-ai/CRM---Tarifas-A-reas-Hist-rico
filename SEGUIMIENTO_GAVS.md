@@ -132,6 +132,20 @@ navegador de esa PC, y **no viaja dentro del HTML**.
 > responsable de la carga y compartir el respaldo, o dejar el HTML y el JSON en
 > una carpeta compartida.
 
+## Cuando se regenera el HTML
+
+El plan vive en el navegador, así que abrir un `seguimiento_gavs.html` nuevo no
+pisa por sí solo lo que ya tenías guardado. Cada build lleva una **huella** del
+plan base y la app la compara al abrir:
+
+- Si no habías tocado nada, las partidas se actualizan solas y avisa con un
+  aviso al pie.
+- Si ya habías asignado, aparece un banner: **Actualizar partidas** reemplaza el
+  plan por el del presupuesto vigente (los movimientos cargados no se tocan), o
+  **Seguir con las mías** lo deja como está y no vuelve a preguntar.
+- *Restaurar original* en un recurso y el botón ⟲ también dejan el plan alineado
+  con el presupuesto vigente.
+
 ## Regenerar con un presupuesto nuevo
 
 ```bash
