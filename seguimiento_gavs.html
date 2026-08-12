@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Seguimiento GAVs — Exportaciones</title>
+<title>Seguimiento GAVs — Viajes, Ferias y Refrigerios</title>
 <style>
 :root{
   color-scheme: light;
@@ -11,9 +11,9 @@
   --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
   --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
-  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
   --good-ink:#006300; --crit-ink:#b02a2a;
-  --wash:rgba(42,120,214,.07);
+  --wash:rgba(42,120,214,.07); --sel:rgba(42,120,214,.13);
   --radius:10px;
   --font:system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -25,7 +25,7 @@
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
     --s1:#3987e5; --s2:#d95926; --s3:#199e70;
     --good-ink:#0ca30c; --crit-ink:#e66767;
-    --wash:rgba(57,135,229,.12);
+    --wash:rgba(57,135,229,.12); --sel:rgba(57,135,229,.2);
   }
 }
 :root[data-theme="dark"]{
@@ -35,15 +35,14 @@
   --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
   --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   --good-ink:#0ca30c; --crit-ink:#e66767;
-  --wash:rgba(57,135,229,.12);
+  --wash:rgba(57,135,229,.12); --sel:rgba(57,135,229,.2);
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--plane);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45}
 h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
 button,input,select,textarea{font:inherit;color:inherit}
-.wrap{max-width:1400px;margin:0 auto;padding:18px 18px 64px}
+.wrap{max-width:1440px;margin:0 auto;padding:18px 18px 80px}
 
-/* ---------- topbar ---------- */
 .top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
 .top h1{font-size:19px}
 .sub{color:var(--ink-2);font-size:12.5px;margin-top:3px}
@@ -53,19 +52,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn.primary{background:var(--s1);border-color:transparent;color:#fff;font-weight:600}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.ghost{background:transparent}
-.btn.sm{padding:4px 8px;font-size:12px}
+.btn.sm{padding:3px 7px;font-size:12px}
+.btn.danger:hover{background:rgba(208,59,59,.14);color:var(--crit-ink)}
 select,input[type=text],input[type=number],input[type=date],textarea{
   background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:13px;max-width:100%}
 textarea{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
 
-/* ---------- tabs ---------- */
 .tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin:6px 0 16px;overflow-x:auto}
 .tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 14px;cursor:pointer;color:var(--ink-2);font-size:13.5px;white-space:nowrap}
 .tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--s1);font-weight:640}
 .view{display:none}
 .view.on{display:block}
 
-/* ---------- cards / kpis ---------- */
 .card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
 .kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px}
@@ -75,80 +73,83 @@ textarea{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font
 .kpi.accent{border-left:3px solid var(--s1)}
 .kpi.ok{border-left:3px solid var(--good)}
 .kpi.bad{border-left:3px solid var(--crit)}
+.kpi.warn{border-left:3px solid var(--warn)}
 
-/* ---------- tables ---------- */
 .tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-1)}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:6px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--grid)}
-th{background:var(--surface-2);color:var(--ink-2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:2}
-th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface-1);z-index:1}
-th:first-child{z-index:3;background:var(--surface-2)}
-tbody tr:hover td{background:var(--wash)}
-tbody tr:hover td:first-child{background:var(--wash)}
+th{background:var(--surface-2);color:var(--ink-2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+td.l,th.l{text-align:left}
 td.num,th.num{font-variant-numeric:tabular-nums}
+tbody tr:hover td{background:var(--wash)}
 tr.lvl0>td:first-child{font-weight:640}
 tr.lvl1>td:first-child{padding-left:30px;color:var(--ink-2)}
 tr.lvl2>td:first-child{padding-left:52px;color:var(--muted);font-size:12.5px}
 tr.tot td{font-weight:680;border-top:2px solid var(--axis);background:var(--surface-2)}
-tr.tot td:first-child{background:var(--surface-2)}
 .tw{cursor:pointer;display:inline-block;width:14px;color:var(--muted);user-select:none}
 .pos{color:var(--good-ink)} .neg{color:var(--crit-ink)}
 .dim{color:var(--muted)}
 
-/* ---------- semáforo ---------- */
 .sem{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
 .dot{width:11px;height:11px;border-radius:50%;flex:none}
 .dot.good{background:var(--good)}
 .dot.warn{background:var(--warn);border-radius:2px;transform:rotate(45deg);width:10px;height:10px}
 .dot.crit{background:var(--crit);border-radius:2px;transform:rotate(45deg);width:10px;height:10px}
 
-/* ---------- barra de consumo ---------- */
 .bar{position:relative;height:8px;border-radius:4px;background:var(--grid);overflow:hidden;min-width:70px}
 .bar>i{position:absolute;left:0;top:0;bottom:0;display:block}
 .bar>i.e{background:var(--s2)}
 .bar>i.c{background:var(--s3);opacity:.75}
 
-/* ---------- grilla plan ---------- */
-.cellin{width:54px;text-align:right;border:1px solid transparent;background:transparent;border-radius:5px;padding:3px 5px;font-variant-numeric:tabular-nums;font-size:12.5px}
-.cellin:hover{border-color:var(--border)}
-.cellin:focus{outline:2px solid var(--s1);outline-offset:-1px;background:var(--surface-2)}
-.cellin.past{color:var(--muted)}
-td.over{background:rgba(208,59,59,.14)!important}
-td.mcur{box-shadow:inset 2px 0 0 var(--s1)}
+/* ---------- asignación ---------- */
+.res{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.reshead{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.reshead h3{font-size:15px}
+.chips{display:flex;gap:16px;flex-wrap:wrap;font-size:12px}
+.chips b{display:block;font-size:15px;font-variant-numeric:tabular-nums;font-weight:650}
+.chips span{color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}
+.pt td{border-bottom:1px solid var(--grid);padding:3px 6px}
+.pt tr.on td{background:var(--sel)!important}
+.pin{width:100%;min-width:60px;border:1px solid transparent;background:transparent;border-radius:5px;padding:4px 6px;font-size:12.5px}
+.pin:hover{border-color:var(--border)}
+.pin:focus{outline:2px solid var(--s1);outline-offset:-1px;background:var(--surface-2)}
+.pin.n{text-align:right;font-variant-numeric:tabular-nums;width:88px}
+.pin.past{color:var(--muted)}
+select.pin{padding:3px 4px}
+.pfoot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--surface-2);border-top:1px solid var(--border)}
+.mini{display:flex;gap:3px;flex-wrap:wrap}
+.mini i{font-style:normal;font-size:10.5px;padding:2px 6px;border-radius:5px;background:var(--wash);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.mini i.cur{outline:1.5px solid var(--s1)}
+.mini i.z{opacity:.4}
+.selbar{display:none;gap:8px;align-items:center;padding:8px 16px;background:var(--sel);border-top:1px solid var(--border);flex-wrap:wrap}
+.selbar.on{display:flex}
 
-#tPlan th,#tPlan td{padding:6px 6px}
-#tPlan td:first-child,#tPlan th:first-child{padding-left:10px}
-
-/* ---------- forms ---------- */
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
 .f{display:flex;flex-direction:column;gap:3px}
 .f label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .hint{font-size:12px;color:var(--ink-2)}
-.sep{height:1px;background:var(--grid);margin:14px 0}
 
-/* ---------- chart ---------- */
 .chartcard{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px 8px}
 .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin-bottom:16px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:2px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .sw{width:10px;height:10px;border-radius:3px;flex:none}
 svg{display:block;width:100%;height:auto;overflow:visible}
-.tip{position:fixed;pointer-events:none;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.16);z-index:99;opacity:0;transition:opacity .1s;max-width:260px}
+.tip{position:fixed;pointer-events:none;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.16);z-index:99;opacity:0;transition:opacity .1s;max-width:280px}
 .tip.on{opacity:1}
 .tip b{display:block;margin-bottom:3px}
 .tip i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
 
-/* ---------- toast / modal ---------- */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:var(--plane);
   padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.18s;z-index:200;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%)}
 #toast.bad{background:var(--crit);color:#fff}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:150}
 .modal.on{display:flex}
-.modal>div{background:var(--surface-1);border-radius:14px;padding:18px;max-width:760px;width:100%;max-height:88vh;overflow:auto;border:1px solid var(--border)}
+.modal>div{background:var(--surface-1);border-radius:14px;padding:18px;max-width:780px;width:100%;max-height:88vh;overflow:auto;border:1px solid var(--border)}
 .badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:var(--wash);color:var(--ink-2);border:1px solid var(--border)}
-.badge.e{background:rgba(235,104,52,.14)}
-.badge.c{background:rgba(27,175,122,.16)}
+.badge.e{background:rgba(235,104,52,.16)}
+.badge.c{background:rgba(27,175,122,.18)}
 .err{color:var(--crit-ink)}
 @media (max-width:640px){ .kpi .val{font-size:19px} .wrap{padding:12px 10px 60px} }
 </style>
@@ -158,46 +159,56 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 
   <div class="top">
     <div>
-      <h1>Seguimiento de GAVs · <span id="hGer">Exportaciones</span></h1>
+      <h1>Seguimiento GAVs — Viajes, Ferias y Refrigerios</h1>
       <div class="sub" id="hSub"></div>
     </div>
     <div class="toolbar">
-      <select id="selSeason" title="Temporada"></select>
       <button class="btn" id="bExport">⭳ Respaldo</button>
       <button class="btn" id="bImport">⭱ Restaurar</button>
       <button class="btn" id="bCsv">⭳ CSV</button>
       <button class="btn ghost" id="bTheme" title="Tema">◐</button>
-      <button class="btn ghost" id="bReset" title="Borrar todo lo cargado">⟲</button>
+      <button class="btn ghost" id="bReset" title="Borrar todo y volver al presupuesto original">⟲</button>
     </div>
   </div>
 
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-v="resumen" aria-selected="true">Resumen y control</button>
-    <button class="tab" role="tab" data-v="plan" aria-selected="false">Plan mensual (reprogramar)</button>
+    <button class="tab" role="tab" data-v="asig" aria-selected="true">Asignación</button>
+    <button class="tab" role="tab" data-v="ctrl" aria-selected="false">Control</button>
     <button class="tab" role="tab" data-v="ejec" aria-selected="false">Ejecución</button>
-    <button class="tab" role="tab" data-v="detalle" aria-selected="false">Detalle del presupuesto</button>
+    <button class="tab" role="tab" data-v="resto" aria-selected="false">Resto del presupuesto</button>
   </div>
 
-  <!-- ============ RESUMEN ============ -->
-  <section class="view on" id="v-resumen">
-    <div class="kpis" id="kpis"></div>
+  <!-- ============ ASIGNACIÓN ============ -->
+  <section class="view on" id="v-asig">
+    <div class="kpis" id="kAsig"></div>
+    <div id="resList"></div>
+    <p class="hint">
+      Dentro de cada recurso puedes hacer lo que quieras: crear partidas, cambiarles el mes, la denominación,
+      el texto de cabecera, la clase de coste y el monto. El único límite es el <b>tope del recurso</b>:
+      si la suma se pasa, el monto se recorta al disponible y te aviso. <b>No hay traspasos entre recursos.</b>
+    </p>
+  </section>
+
+  <!-- ============ CONTROL ============ -->
+  <section class="view" id="v-ctrl">
+    <div class="kpis" id="kCtrl"></div>
     <div class="charts">
       <div class="chartcard">
-        <h3 style="font-size:14px">Plan vs. ejecución por mes</h3>
-        <div class="sub" style="margin-bottom:6px">USD · el plan es el presupuesto ya reprogramado</div>
+        <h3 style="font-size:14px">Asignado vs. ejecutado por mes</h3>
+        <div class="sub" style="margin-bottom:6px">USD · solo los tres recursos en foco</div>
         <div id="chMes"></div>
         <div class="legend">
-          <span><i class="sw" style="background:var(--s1)"></i>Plan</span>
+          <span><i class="sw" style="background:var(--s1)"></i>Asignado</span>
           <span><i class="sw" style="background:var(--s2)"></i>Ejecutado</span>
           <span><i class="sw" style="background:var(--s3)"></i>Comprometido</span>
         </div>
       </div>
       <div class="chartcard">
         <h3 style="font-size:14px">Consumo acumulado vs. tope</h3>
-        <div class="sub" style="margin-bottom:6px">USD acumulado · la línea gris es el tope de la temporada</div>
+        <div class="sub" style="margin-bottom:6px">USD acumulado · la línea cortada es el tope de los tres recursos</div>
         <div id="chAcum"></div>
         <div class="legend">
-          <span><i class="sw" style="background:var(--s1)"></i>Plan acum.</span>
+          <span><i class="sw" style="background:var(--s1)"></i>Asignado acum.</span>
           <span><i class="sw" style="background:var(--s2)"></i>Ejec.+Comp. acum.</span>
           <span><i class="sw" style="background:var(--axis)"></i>Tope</span>
         </div>
@@ -205,54 +216,36 @@ svg{display:block;width:100%;height:auto;overflow:visible}
     </div>
 
     <div class="row" style="margin-bottom:8px;justify-content:space-between">
-      <h2 style="font-size:15px">Control por Recurso / Denom. clase de coste / Descripción</h2>
+      <h2 style="font-size:15px">Control por Recurso y detalle</h2>
       <div class="toolbar">
-        <label class="hint"><input type="checkbox" id="ckAcum"> Comparar solo hasta el mes en curso</label>
-        <button class="btn sm" id="bExpAll">Expandir todo</button>
+        <span class="hint">Abrir por:</span>
+        <select id="g1"></select>
+        <select id="g2"></select>
+        <button class="btn sm" id="bExpAll">Expandir</button>
         <button class="btn sm" id="bColAll">Colapsar</button>
       </div>
     </div>
     <div class="tblwrap"><table id="tCtrl"></table></div>
     <p class="hint" style="margin-top:8px">
-      Regla dura: el tope es por <b>Recurso</b>. Los meses se pueden mover libremente dentro del recurso,
-      pero la suma de la temporada no puede superar su presupuesto y no hay traspasos entre recursos.
+      Semáforo por recurso: 🔴 consumido sobre el tope · 🟡 del 90 % al 100 % · 🟢 bajo el 90 %.
+      «Asignado» es tu plan de partidas; «Ejec.+Comp.» es lo real más lo comprometido.
     </p>
   </section>
 
-  <!-- ============ PLAN ============ -->
-  <section class="view" id="v-plan">
-    <div class="card" style="margin-bottom:12px">
-      <div class="row" style="justify-content:space-between">
-        <div>
-          <h2 style="font-size:15px">Reprogramación de meses</h2>
-          <div class="hint">Edita cualquier celda. El total del recurso no puede pasar su presupuesto: si te excedes, se recorta al máximo disponible y te aviso.</div>
-        </div>
-        <div class="toolbar">
-          <select id="selMoveTo" title="Mes destino"></select>
-          <button class="btn" id="bPullSaldo">Traer saldo vencido al mes destino</button>
-          <button class="btn ghost" id="bResetPlan">Volver al plan original</button>
-        </div>
-      </div>
-    </div>
-    <div class="tblwrap"><table id="tPlan"></table></div>
-    <p class="hint" style="margin-top:8px">
-      «Saldo vencido» = plan de meses ya cerrados que no llegó a ejecutarse ni comprometerse. Se mueve al mes destino sin tocar el tope anual.
-    </p>
-  </section>
-
-  <!-- ============ EJECUCION ============ -->
+  <!-- ============ EJECUCIÓN ============ -->
   <section class="view" id="v-ejec">
     <div class="card" style="margin-bottom:12px">
       <h2 style="font-size:15px;margin-bottom:8px">Carga rápida</h2>
       <div class="row">
         <div class="f"><label>Fecha</label><input type="date" id="fFecha"></div>
-        <div class="f"><label>Recurso</label><select id="fRecurso" style="min-width:190px"></select></div>
-        <div class="f"><label>Denom. clase de coste</label><select id="fDenom" style="min-width:190px"></select></div>
-        <div class="f" style="flex:1;min-width:180px"><label>Concepto / detalle</label><input type="text" id="fConcepto" placeholder="Ej. Vuelo Lima–Trujillo, feria Fruit Attraction…" style="width:100%"></div>
-        <div class="f"><label>Monto</label><input type="number" id="fMonto" step="0.01" style="width:110px"></div>
+        <div class="f"><label>Recurso</label><select id="fRecurso" style="min-width:180px"></select></div>
+        <div class="f"><label>Clase de coste</label><select id="fClase" style="min-width:190px"></select></div>
+        <div class="f" style="flex:1;min-width:160px"><label>Denominación</label><input type="text" id="fDenom" list="dlDenom" style="width:100%" placeholder="Ej. Alojamiento Trux"></div>
+        <div class="f" style="flex:1.4;min-width:200px"><label>Texto de cabecera</label><input type="text" id="fTexto" list="dlTexto" style="width:100%" placeholder="Ej. Visita Puerto Paita / Aseguramiento operatividad"></div>
+        <div class="f"><label>Monto</label><input type="number" id="fMonto" step="0.01" style="width:104px"></div>
         <div class="f"><label>Moneda</label><select id="fMoneda"><option>USD</option><option>PEN</option></select></div>
         <div class="f"><label>Estado</label><select id="fEstado"><option value="comprometido">Comprometido</option><option value="ejecutado">Ejecutado</option></select></div>
-        <div class="f"><label>Doc. / OC</label><input type="text" id="fDoc" style="width:110px"></div>
+        <div class="f"><label>Doc. / OC</label><input type="text" id="fDoc" style="width:100px"></div>
         <button class="btn primary" id="bAdd">Agregar</button>
         <button class="btn" id="bPaste">⭱ Importar de SAP</button>
       </div>
@@ -260,35 +253,38 @@ svg{display:block;width:100%;height:auto;overflow:visible}
     </div>
 
     <div class="row" style="margin-bottom:8px;justify-content:space-between">
-      <h2 style="font-size:15px">Movimientos cargados (<span id="nMov">0</span>)</h2>
+      <h2 style="font-size:15px">Movimientos (<span id="nMov">0</span>)</h2>
       <div class="toolbar">
         <select id="fltEstado"><option value="">Todos los estados</option><option value="comprometido">Comprometido</option><option value="ejecutado">Ejecutado</option></select>
-        <select id="fltRecurso"><option value="">Todos los recursos</option></select>
-        <input type="text" id="fltTxt" placeholder="Buscar…">
+        <select id="fltRecurso"></select>
+        <input type="text" id="fltTxt" placeholder="Buscar denominación, texto, doc…" style="min-width:210px">
       </div>
     </div>
     <div class="tblwrap"><table id="tMov"></table></div>
   </section>
 
-  <!-- ============ DETALLE ============ -->
-  <section class="view" id="v-detalle">
-    <div class="row" style="margin-bottom:8px;justify-content:space-between">
-      <h2 style="font-size:15px">Líneas del presupuesto aprobado</h2>
-      <input type="text" id="fltDet" placeholder="Buscar recurso, cuenta, material…" style="min-width:240px">
+  <!-- ============ RESTO ============ -->
+  <section class="view" id="v-resto">
+    <div class="card" style="margin-bottom:12px">
+      <h2 style="font-size:15px">Fuera del alcance de esta herramienta</h2>
+      <div class="hint" id="restoSub"></div>
     </div>
-    <div class="tblwrap"><table id="tDet"></table></div>
-    <p class="hint" style="margin-top:8px">Baseline congelado del formato F01CGPPTO. Los montos se convierten a USD con el TC presupuestado de cada mes.</p>
+    <div class="tblwrap"><table id="tResto"></table></div>
+    <p class="hint" style="margin-top:8px">Solo referencia: acá no se asigna ni se controla ejecución.</p>
   </section>
 </div>
 
+<datalist id="dlDenom"></datalist>
+<datalist id="dlTexto"></datalist>
 <div id="toast"></div>
 <div class="tip" id="tip"></div>
 
-<!-- modal importar SAP -->
 <div class="modal" id="mPaste"><div>
   <h2 style="font-size:16px">Importar extracción de SAP (OPEX)</h2>
-  <p class="hint">Copia desde Excel el rango <b>con la fila de encabezados</b> y pégalo acá. Se reconocen las columnas del layout <code>BD_Opex</code>:
-  <i>Centro de coste · Ejercicio · Período · Clase de coste · Denom.clase de coste · Descrip.clases coste · Val/Mon.so.CO · Importe Origen · Moneda Origen · Denominación · Nº de documento</i>.</p>
+  <p class="hint">Copia desde Excel el rango <b>con la fila de encabezados</b> y pégalo acá. Se leen:
+  <i>Ejercicio · Período · Clase de coste · Denom.clase de coste · Descrip.clases coste · <b>Denominación</b> ·
+  <b>Texto de cabecera de documento</b> · Val/Mon.so.CO · Importe Origen · Moneda Origen · Nº de documento · Fe.contabilización</i>.
+  Solo se importan las clases de coste de los tres recursos en foco.</p>
   <textarea id="taPaste" rows="10" placeholder="Pega aquí…"></textarea>
   <div class="row" style="margin-top:10px;justify-content:space-between">
     <label class="hint"><input type="checkbox" id="ckReplace" checked> Reemplazar lo importado antes desde SAP (evita duplicar)</label>
@@ -304,172 +300,362 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 
 <script>
 "use strict";
-const BASE = {"header": {"entidad": "HORTIFRUT - TRUJILLO", "presupuesto": "Presupuesto Temporada 26/27", "ambito": "Consolidado/Soporte", "gerencia": "Gerencia: Exportaciones"}, "seasons": [{"id": "T2627", "label": "Temporada 26/27", "months": ["2026_07", "2026_08", "2026_09", "2026_10", "2026_11", "2026_12", "2027_01", "2027_02", "2027_03", "2027_04", "2027_05", "2027_06"], "tc": [3.36, 3.36, 3.36, 3.35, 3.35, 3.35, 3.37, 3.37, 3.37, 3.38, 3.38, 3.38], "lines": [{"id": "T2627-001", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Materiales e Insumos", "agrCtas": "Suministros", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "EME-000014", "textoMaterial": "SILLA DE ESCRITORIO ERGONÓMICA", "tipo": "1.Suministros", "umb": "UN", "pu": 371.95, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0], "usd": [110.7, 110.7, 110.7, 0.0, 0.0, 0.0, 0.0, 110.37, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-002", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "USD", "qty": [3.0, 0.0, 0.0, 2.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0], "usd": [240.0, 0.0, 0.0, 160.0, 0.0, 160.0, 0.0, 0.0, 0.0, 0.0, 160.0, 0.0]}, {"id": "T2627-003", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 70.0, "moneda": "USD", "qty": [0.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 280.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-004", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 70.0, "moneda": "USD", "qty": [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [210.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-005", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "USD", "qty": [0.0, 0.0, 6.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 480.0, 0.0, 240.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-006", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 100.0, "moneda": "USD", "qty": [0.0, 0.0, 3.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0], "usd": [0.0, 0.0, 300.0, 0.0, 300.0, 0.0, 0.0, 0.0, 0.0, 300.0, 0.0, 0.0]}, {"id": "T2627-007", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 70.0, "moneda": "USD", "qty": [0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 280.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-008", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0], "usd": [150.0, 0.0, 0.0, 150.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0]}, {"id": "T2627-009", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [0.0, 0.0, 3.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], "usd": [0.0, 0.0, 450.0, 0.0, 300.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "T2627-010", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 11.5, "moneda": "PEN", "qty": [8.0, 8.0, 8.0, 30.0, 30.0, 30.0, 8.0, 8.0, 8.0, 0.0, 0.0, 8.0], "usd": [27.38, 27.38, 27.38, 102.99, 102.99, 102.99, 27.3, 27.3, 27.3, 0.0, 0.0, 27.22]}, {"id": "T2627-011", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 11.5, "moneda": "PEN", "qty": [8.0, 8.0, 8.0, 30.0, 30.0, 30.0, 8.0, 8.0, 8.0, 0.0, 0.0, 8.0], "usd": [27.38, 27.38, 27.38, 102.99, 102.99, 102.99, 27.3, 27.3, 27.3, 0.0, 0.0, 27.22]}, {"id": "T2627-012", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 30.0, "moneda": "USD", "qty": [4.0, 0.0, 0.0, 4.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0], "usd": [120.0, 0.0, 0.0, 120.0, 0.0, 120.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0]}, {"id": "T2627-013", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "qty": [0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-014", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "qty": [6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [150.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-015", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 30.0, "moneda": "USD", "qty": [0.0, 0.0, 9.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0], "usd": [0.0, 0.0, 270.0, 0.0, 180.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0, 0.0]}, {"id": "T2627-016", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "qty": [0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-017", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 1200.0, "moneda": "PEN", "qty": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [357.14, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-018", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [4.0, 0.0, 0.0, 4.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0], "usd": [95.24, 0.0, 0.0, 95.52, 0.0, 95.52, 0.0, 0.0, 0.0, 0.0, 94.67, 0.0]}, {"id": "T2627-019", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [0.0, 0.0, 6.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0], "usd": [0.0, 0.0, 142.86, 0.0, 143.28, 0.0, 0.0, 0.0, 0.0, 94.67, 0.0, 0.0]}, {"id": "T2627-020", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 47.62, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-021", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 100.0, "moneda": "PEN", "qty": [0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 89.29, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-022", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4120000216", "denomClaseCoste": "Gastos de envío", "descripClaseCoste": "Gastos de envío (correspondencias)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 620.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 185.07, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-023", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4120000258", "denomClaseCoste": "Otros Servicios", "descripClaseCoste": "Otros Servicios Generales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 250.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 74.63, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-024", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4212000091", "denomClaseCoste": "Costo Muestras", "descripClaseCoste": "Costo Muestras", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 2000.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 597.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-025", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Licencias/Patentes/Marcas", "agrCtas": "Licencias/Patentes/Marcas", "claseCoste": "4120000213", "denomClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "descripClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "SRV", "pu": 1200.0, "moneda": "USD", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 1200.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-026", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Asesorías y Consultorias", "agrCtas": "Asesorías y Consultorias", "claseCoste": "4120000270", "denomClaseCoste": "Asesoria Juridica o Legal", "descripClaseCoste": "Asesoria Juridica o Legal", "material": "", "textoMaterial": "", "tipo": "5.Asesorías", "umb": "SRV", "pu": 130.0, "moneda": "USD", "qty": [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 2.0, 2.0], "usd": [260.0, 260.0, 260.0, 260.0, 260.0, 260.0, 260.0, 260.0, 0.0, 0.0, 260.0, 260.0]}, {"id": "T2627-027", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Materiales e Insumos", "agrCtas": "Suministros", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 30.0, "moneda": "USD", "qty": [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0], "usd": [0.0, 30.0, 0.0, 0.0, 30.0, 0.0, 0.0, 30.0, 0.0, 0.0, 30.0, 0.0]}, {"id": "T2627-028", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 80.0, "moneda": "USD", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 240.0, 0.0, 0.0]}, {"id": "T2627-029", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "T2627-030", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 30.0, "moneda": "USD", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0, 0.0]}, {"id": "T2627-031", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Licencias/Patentes/Marcas", "agrCtas": "Licencias/Patentes/Marcas", "claseCoste": "4120000213", "denomClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "descripClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 630.0, "moneda": "USD", "qty": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [630.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-032", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 94.67, 0.0, 0.0]}, {"id": "T2627-033", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 1900.0, "moneda": "PEN", "qty": [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [565.48, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-034", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 450.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 134.33, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-035", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 60.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 35.5, 0.0]}, {"id": "T2627-036", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 30.0, "moneda": "PEN", "qty": [11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [98.21, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-037", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 260.36, 0.0]}, {"id": "T2627-038", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 250.0, "moneda": "PEN", "qty": [0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0], "usd": [0.0, 74.4, 0.0, 74.63, 0.0, 0.0, 0.0, 74.18, 0.0, 73.96, 0.0, 0.0]}, {"id": "T2627-039", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Feria y Eventos", "agrCtas": "Otros Costos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 70.0, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 11.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 229.85, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-040", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Capacitaciones al Personal", "agrCtas": "Capacitaciones al Personal", "claseCoste": "4120000242", "denomClaseCoste": "Cap.,seminarios, cur", "descripClaseCoste": "Capacitaciones (cursos, congresos, seminarios)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "T2627-041", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Capacitaciones al Personal", "agrCtas": "Capacitaciones al Personal", "claseCoste": "4120000242", "denomClaseCoste": "Cap.,seminarios, cur", "descripClaseCoste": "Capacitaciones (cursos, congresos, seminarios)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 186.0, "moneda": "USD", "qty": [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 186.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-042", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Combustibles", "agrCtas": "Combustibles", "claseCoste": "4212000012", "denomClaseCoste": "Consumo de Combustib", "descripClaseCoste": "Consumo de Combustibles", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "GLN", "pu": 19.2049, "moneda": "PEN", "qty": [45.0, 56.0, 56.0, 70.0, 56.0, 64.0, 58.0, 41.0, 28.0, 28.0, 44.0, 40.0], "usd": [257.21, 320.08, 320.08, 401.3, 321.04, 366.9, 330.53, 233.65, 159.57, 159.09, 250.0, 227.28]}, {"id": "T2627-043", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Vehículos", "agrCtas": "Seguros e Impuestos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 9.322034, "moneda": "PEN", "qty": [0.0, 8.0, 8.0, 10.0, 8.0, 10.0, 10.0, 8.0, 8.0, 2.0, 8.0, 8.0], "usd": [0.0, 22.2, 22.2, 27.83, 22.26, 27.83, 27.66, 22.13, 22.13, 5.52, 22.06, 22.06]}, {"id": "T2627-044", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Vehículos", "agrCtas": "Seguros e Impuestos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 10.6, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 6.33, 6.33, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-045", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Vehículos", "agrCtas": "Seguros e Impuestos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 10.5, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 6.27, 6.27, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-046", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Vehículos", "agrCtas": "Seguros e Impuestos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 16.9, "moneda": "PEN", "qty": [0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 0.0, 0.0, 10.09, 10.09, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2627-047", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos de Vehículos", "agrCtas": "Seguros e Impuestos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 50.0, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [14.88, 14.88, 14.88, 14.93, 14.93, 14.93, 14.84, 14.84, 14.84, 14.79, 14.79, 14.79]}, {"id": "T2627-048", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 49.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [14.85, 14.85, 14.85, 14.9, 14.9, 14.9, 14.81, 14.81, 14.81, 14.76, 14.76, 14.76]}, {"id": "T2627-049", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-050", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-051", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-052", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-053", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-054", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-055", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-056", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-057", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-058", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-059", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "T2627-060", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Telefono y Comunicaciones", "agrCtas": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "qty": [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0], "usd": [0.0, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 0.0, 0.0, 0.0, 0.0, 0.0]}], "total": 21945.9}, {"id": "T2526", "label": "Cola 25/26 (feb–jun 26)", "months": ["2026_02", "2026_03", "2026_04", "2026_05", "2026_06"], "tc": [3.36, 3.36, 3.36, 3.36, 3.36], "lines": [{"id": "T2526-001", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Materiales e Insumos", "agrCtas": "Suministros", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "EME-000014", "textoMaterial": "SILLA DE ESCRITORIO ERGONÓMICA", "tipo": "1.Suministros", "umb": "UN", "pu": 371.95, "moneda": "PEN", "qty": [1.0, 0.0, 0.0, 0.0, 0.0], "usd": [110.7, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2526-002", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Materiales e Insumos", "agrCtas": "Suministros", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "MOBI-0017", "textoMaterial": "ESCRITORIO MELAMINA 90X75X80CM S/CAJON", "tipo": "1.Suministros", "umb": "UN", "pu": 225.0, "moneda": "PEN", "qty": [1.0, 0.0, 0.0, 0.0, 0.0], "usd": [66.96, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2526-003", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4120000235", "denomClaseCoste": "Material informático", "descripClaseCoste": "Material informático", "material": "COMP-0081", "textoMaterial": "MOUSE INALAMBRICOS LOGITECH", "tipo": "1.Suministros", "umb": "UN", "pu": 44.626667, "moneda": "USD", "qty": [1.0, 0.0, 0.0, 0.0, 0.0], "usd": [44.63, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2526-004", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4120000235", "denomClaseCoste": "Material informático", "descripClaseCoste": "Material informático", "material": "AFICOM0095", "textoMaterial": "PAD MOUSE IBLUE MD C/DESCANSADOR", "tipo": "1.Suministros", "umb": "UN", "pu": 25.21, "moneda": "USD", "qty": [1.0, 0.0, 0.0, 0.0, 0.0], "usd": [25.21, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2526-005", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4120000235", "denomClaseCoste": "Material informático", "descripClaseCoste": "Material informático", "material": "COMP-0085", "textoMaterial": "BASE COOLER XTECH XTA 150", "tipo": "1.Suministros", "umb": "UN", "pu": 46.61, "moneda": "PEN", "qty": [1.0, 0.0, 0.0, 0.0, 0.0], "usd": [13.87, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2526-006", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 50.0, "moneda": "USD", "qty": [0.0, 0.0, 3.0, 3.0, 0.0], "usd": [0.0, 0.0, 150.0, 150.0, 0.0]}, {"id": "T2526-007", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 100.0, "moneda": "USD", "qty": [0.0, 0.0, 3.0, 0.0, 0.0], "usd": [0.0, 0.0, 300.0, 0.0, 0.0]}, {"id": "T2526-008", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [0.0, 0.0, 1.0, 1.0, 0.0], "usd": [0.0, 0.0, 150.0, 150.0, 0.0]}, {"id": "T2526-009", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Gastos De Viaje", "agrCtas": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [0.0, 0.0, 1.0, 0.0, 0.0], "usd": [0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "T2526-010", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 12.1, "moneda": "PEN", "qty": [8.0, 8.0, 0.0, 0.0, 8.0], "usd": [28.81, 28.81, 0.0, 0.0, 28.81]}, {"id": "T2526-011", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 9.09, "moneda": "PEN", "qty": [8.0, 8.0, 0.0, 0.0, 8.0], "usd": [21.64, 21.64, 0.0, 0.0, 21.64]}, {"id": "T2526-012", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "qty": [0.0, 0.0, 4.0, 4.0, 0.0], "usd": [0.0, 0.0, 100.0, 100.0, 0.0]}, {"id": "T2526-013", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Refrigerios", "agrCtas": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 30.0, "moneda": "USD", "qty": [0.0, 0.0, 4.0, 0.0, 0.0], "usd": [0.0, 0.0, 120.0, 0.0, 0.0]}, {"id": "T2526-014", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [0.0, 0.0, 4.0, 4.0, 0.0], "usd": [0.0, 0.0, 95.24, 95.24, 0.0]}, {"id": "T2526-015", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Transporte De Personal", "agrCtas": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "qty": [0.0, 0.0, 4.0, 0.0, 0.0], "usd": [0.0, 0.0, 95.24, 0.0, 0.0]}, {"id": "T2526-016", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Otros Costos", "agrCtas": "Otros Costos", "claseCoste": "4120000235", "denomClaseCoste": "Material informático", "descripClaseCoste": "Material informático", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "qty": [1.0, 0.0, 0.0, 0.0, 0.0], "usd": [150.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "T2526-017", "ceco": "PEA2620102", "oe": "", "area": "Exportaciones", "subarea": "Gestión", "claseCostoGasto": "Costos Exportación", "recurso": "Materiales e Insumos", "agrCtas": "Suministros", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 30.0, "moneda": "USD", "qty": [1.0, 0.0, 0.0, 1.0, 0.0], "usd": [30.0, 0.0, 0.0, 30.0, 0.0]}], "total": 2278.44}]};
-const KEY  = "gav-tracker-v1";
+const BASE = {"header": {"entidad": "HORTIFRUT - TRUJILLO", "presupuesto": "Presupuesto Temporada 26/27", "ambito": "Consolidado/Soporte", "gerencia": "Gerencia: Exportaciones"}, "season": {"id": "T2627", "label": "Temporada 26/27", "months": ["2026_07", "2026_08", "2026_09", "2026_10", "2026_11", "2026_12", "2027_01", "2027_02", "2027_03", "2027_04", "2027_05", "2027_06"], "tc": [3.36, 3.36, 3.36, 3.35, 3.35, 3.35, 3.37, 3.37, 3.37, 3.38, 3.38, 3.38]}, "foco": ["Gastos De Viaje", "Gastos de Feria y Eventos", "Refrigerios"], "topes": {"Gastos De Viaje": 5000.0, "Gastos de Feria y Eventos": 1710.19, "Refrigerios": 2570.46}, "clases": {"Gastos De Viaje": [{"cc": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal"}, {"cc": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales"}], "Gastos de Feria y Eventos": [{"cc": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos"}], "Refrigerios": [{"cc": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal"}]}, "parts": [{"id": "P001", "recurso": "Gastos De Viaje", "mi": 5, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 160.0}, {"id": "P002", "recurso": "Gastos De Viaje", "mi": 0, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento CHY", "texto": "Visita Puerto Chancay/ Aseguramiento operatividad", "monto": 210.0}, {"id": "P003", "recurso": "Gastos De Viaje", "mi": 0, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 240.0}, {"id": "P004", "recurso": "Gastos De Viaje", "mi": 2, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento CIX", "texto": "Visita Olmos (HFB) inspección packing", "monto": 280.0}, {"id": "P005", "recurso": "Gastos De Viaje", "mi": 2, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento LIM", "texto": "Expoaliementario(2p), visita inst.prov(1p)/3d", "monto": 480.0}, {"id": "P006", "recurso": "Gastos De Viaje", "mi": 2, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento LIM Fabricio", "texto": "Expoalimentaria/Visita inst.prov/LicitaciónProv/3d", "monto": 300.0}, {"id": "P007", "recurso": "Gastos De Viaje", "mi": 4, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento LIM", "texto": "Expoaliementario(2p), visita inst.prov(1p)/3d", "monto": 240.0}, {"id": "P008", "recurso": "Gastos De Viaje", "mi": 4, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento LIM Fabricio", "texto": "Expoalimentaria/Visita inst.prov/LicitaciónProv/3d", "monto": 300.0}, {"id": "P009", "recurso": "Gastos De Viaje", "mi": 9, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento LIM Fabricio", "texto": "Expoalimentaria/Visita inst.prov/LicitaciónProv/3d", "monto": 300.0}, {"id": "P010", "recurso": "Gastos De Viaje", "mi": 9, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento Trux", "texto": "Alojamiento Y. Juro - CL", "monto": 240.0}, {"id": "P011", "recurso": "Gastos De Viaje", "mi": 1, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento PIURA", "texto": "Visita Puerto Paita / Aseguramiento operatividad", "monto": 280.0}, {"id": "P012", "recurso": "Gastos De Viaje", "mi": 3, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 160.0}, {"id": "P013", "recurso": "Gastos De Viaje", "mi": 10, "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "denominacion": "Alojamiento Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 160.0}, {"id": "P014", "recurso": "Gastos De Viaje", "mi": 5, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - LIMA/TRUX", "texto": "Viaje Reuniones operativas trim - Y. Juro", "monto": 150.0}, {"id": "P015", "recurso": "Gastos De Viaje", "mi": 0, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - LIMA/TRUX", "texto": "Viaje Reuniones operativas trim - Y. Juro", "monto": 150.0}, {"id": "P016", "recurso": "Gastos De Viaje", "mi": 2, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - TRUX/ LIMA", "texto": "Expoalimentaria (3p)/Visita inst.prov(2)/LicitaciónProv(1p)/3d", "monto": 450.0}, {"id": "P017", "recurso": "Gastos De Viaje", "mi": 4, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - TRUX/ LIMA", "texto": "Expoalimentaria (3p)/Visita inst.prov(2)/LicitaciónProv(1p)/3d", "monto": 300.0}, {"id": "P018", "recurso": "Gastos De Viaje", "mi": 9, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - Lima/Trux", "texto": "Pasaje Y. Juro - CL", "monto": 150.0}, {"id": "P019", "recurso": "Gastos De Viaje", "mi": 9, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - TRUX/ LIMA", "texto": "Expoalimentaria (3p)/Visita inst.prov(2)/LicitaciónProv(1p)/3d", "monto": 150.0}, {"id": "P020", "recurso": "Gastos De Viaje", "mi": 3, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - LIMA/TRUX", "texto": "Viaje Reuniones operativas trim - Y. Juro", "monto": 150.0}, {"id": "P021", "recurso": "Gastos De Viaje", "mi": 10, "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "denominacion": "Pasaje Nacional - LIMA/TRUX", "texto": "Viaje Reuniones operativas trim - Y. Juro", "monto": 150.0}, {"id": "P022", "recurso": "Gastos de Feria y Eventos", "mi": 2, "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "denominacion": "Entrada Expoalimentaria", "texto": "", "monto": 89.29}, {"id": "P023", "recurso": "Refrigerios", "mi": 5, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 120.0}, {"id": "P024", "recurso": "Refrigerios", "mi": 5, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 102.99}, {"id": "P025", "recurso": "Refrigerios", "mi": 5, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 102.99}, {"id": "P026", "recurso": "Refrigerios", "mi": 0, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion CHY", "texto": "Visita Puerto Chancay/ Aseguramiento operatividad", "monto": 150.0}, {"id": "P027", "recurso": "Refrigerios", "mi": 0, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 120.0}, {"id": "P028", "recurso": "Refrigerios", "mi": 0, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.38}, {"id": "P029", "recurso": "Refrigerios", "mi": 0, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.38}, {"id": "P030", "recurso": "Refrigerios", "mi": 2, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.38}, {"id": "P031", "recurso": "Refrigerios", "mi": 2, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.38}, {"id": "P032", "recurso": "Refrigerios", "mi": 2, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion CIX", "texto": "Visita Olmos (HFB) inspección packing", "monto": 150.0}, {"id": "P033", "recurso": "Refrigerios", "mi": 2, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion LIM", "texto": "Expoalimentario y visita inst.prov", "monto": 270.0}, {"id": "P034", "recurso": "Refrigerios", "mi": 1, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.38}, {"id": "P035", "recurso": "Refrigerios", "mi": 1, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.38}, {"id": "P036", "recurso": "Refrigerios", "mi": 4, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 102.99}, {"id": "P037", "recurso": "Refrigerios", "mi": 4, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 102.99}, {"id": "P038", "recurso": "Refrigerios", "mi": 3, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 102.99}, {"id": "P039", "recurso": "Refrigerios", "mi": 3, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 102.99}, {"id": "P040", "recurso": "Refrigerios", "mi": 4, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion LIM", "texto": "Expoalimentario y visita inst.prov", "monto": 180.0}, {"id": "P041", "recurso": "Refrigerios", "mi": 6, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.3}, {"id": "P042", "recurso": "Refrigerios", "mi": 6, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.3}, {"id": "P043", "recurso": "Refrigerios", "mi": 7, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.3}, {"id": "P044", "recurso": "Refrigerios", "mi": 7, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.3}, {"id": "P045", "recurso": "Refrigerios", "mi": 8, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.3}, {"id": "P046", "recurso": "Refrigerios", "mi": 8, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.3}, {"id": "P047", "recurso": "Refrigerios", "mi": 9, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion LIM", "texto": "Expoalimentario y visita inst.prov", "monto": 120.0}, {"id": "P048", "recurso": "Refrigerios", "mi": 9, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentación Trux", "texto": "Alimentacion Y. Juro - CL", "monto": 120.0}, {"id": "P049", "recurso": "Refrigerios", "mi": 11, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Chao", "texto": "", "monto": 27.22}, {"id": "P050", "recurso": "Refrigerios", "mi": 11, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Almuerzo packing Salaverry", "texto": "", "monto": 27.22}, {"id": "P051", "recurso": "Refrigerios", "mi": 1, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion Piura", "texto": "Visita Puerto Paita / Aseguramiento operatividad", "monto": 100.0}, {"id": "P052", "recurso": "Refrigerios", "mi": 3, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 120.0}, {"id": "P053", "recurso": "Refrigerios", "mi": 10, "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "denominacion": "Alimentacion Trux", "texto": "Reuniones operativas trim - Y. Juro", "monto": 120.0}, {"id": "P054", "recurso": "Gastos de Feria y Eventos", "mi": 0, "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "denominacion": "", "texto": "Por asignar", "monto": 1620.9}], "lines": [{"id": "L001", "ceco": "PEA2620102", "recurso": "Materiales e Insumos", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "EME-000014", "textoMaterial": "SILLA DE ESCRITORIO ERGONÓMICA", "tipo": "1.Suministros", "umb": "UN", "pu": 371.95, "moneda": "PEN", "usd": [110.7, 110.7, 110.7, 0.0, 0.0, 0.0, 0.0, 110.37, 0.0, 0.0, 0.0, 0.0]}, {"id": "L002", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "USD", "usd": [240.0, 0.0, 0.0, 160.0, 0.0, 160.0, 0.0, 0.0, 0.0, 0.0, 160.0, 0.0]}, {"id": "L003", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 70.0, "moneda": "USD", "usd": [0.0, 0.0, 280.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L004", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 70.0, "moneda": "USD", "usd": [210.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L005", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "USD", "usd": [0.0, 0.0, 480.0, 0.0, 240.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L006", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 100.0, "moneda": "USD", "usd": [0.0, 0.0, 300.0, 0.0, 300.0, 0.0, 0.0, 0.0, 0.0, 300.0, 0.0, 0.0]}, {"id": "L007", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 70.0, "moneda": "USD", "usd": [0.0, 280.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L008", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "usd": [150.0, 0.0, 0.0, 150.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0]}, {"id": "L009", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "usd": [0.0, 0.0, 450.0, 0.0, 300.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "L010", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 11.5, "moneda": "PEN", "usd": [27.38, 27.38, 27.38, 102.99, 102.99, 102.99, 27.3, 27.3, 27.3, 0.0, 0.0, 27.22]}, {"id": "L011", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 11.5, "moneda": "PEN", "usd": [27.38, 27.38, 27.38, 102.99, 102.99, 102.99, 27.3, 27.3, 27.3, 0.0, 0.0, 27.22]}, {"id": "L012", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 30.0, "moneda": "USD", "usd": [120.0, 0.0, 0.0, 120.0, 0.0, 120.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0]}, {"id": "L013", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "usd": [0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L014", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "usd": [150.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L015", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 30.0, "moneda": "USD", "usd": [0.0, 0.0, 270.0, 0.0, 180.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0, 0.0]}, {"id": "L016", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "3.Refrigerios", "umb": "UN", "pu": 25.0, "moneda": "USD", "usd": [0.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L017", "ceco": "PEA2620102", "recurso": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 1200.0, "moneda": "PEN", "usd": [357.14, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L018", "ceco": "PEA2620102", "recurso": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "usd": [95.24, 0.0, 0.0, 95.52, 0.0, 95.52, 0.0, 0.0, 0.0, 0.0, 94.67, 0.0]}, {"id": "L019", "ceco": "PEA2620102", "recurso": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "usd": [0.0, 0.0, 142.86, 0.0, 143.28, 0.0, 0.0, 0.0, 0.0, 94.67, 0.0, 0.0]}, {"id": "L020", "ceco": "PEA2620102", "recurso": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 80.0, "moneda": "PEN", "usd": [0.0, 47.62, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L021", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 100.0, "moneda": "PEN", "usd": [0.0, 0.0, 89.29, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L022", "ceco": "PEA2620102", "recurso": "Otros Costos", "claseCoste": "4120000216", "denomClaseCoste": "Gastos de envío", "descripClaseCoste": "Gastos de envío (correspondencias)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 620.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 185.07, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L023", "ceco": "PEA2620102", "recurso": "Otros Costos", "claseCoste": "4120000258", "denomClaseCoste": "Otros Servicios", "descripClaseCoste": "Otros Servicios Generales", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 250.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 74.63, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L024", "ceco": "PEA2620102", "recurso": "Otros Costos", "claseCoste": "4212000091", "denomClaseCoste": "Costo Muestras", "descripClaseCoste": "Costo Muestras", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 2000.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 597.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L025", "ceco": "PEA2620102", "recurso": "Licencias/Patentes/Marcas", "claseCoste": "4120000213", "denomClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "descripClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "SRV", "pu": 1200.0, "moneda": "USD", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 1200.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L026", "ceco": "PEA2620102", "recurso": "Asesorías y Consultorias", "claseCoste": "4120000270", "denomClaseCoste": "Asesoria Juridica o Legal", "descripClaseCoste": "Asesoria Juridica o Legal", "material": "", "textoMaterial": "", "tipo": "5.Asesorías", "umb": "SRV", "pu": 130.0, "moneda": "USD", "usd": [260.0, 260.0, 260.0, 260.0, 260.0, 260.0, 260.0, 260.0, 0.0, 0.0, 260.0, 260.0]}, {"id": "L027", "ceco": "PEA2620102", "recurso": "Materiales e Insumos", "claseCoste": "4120000234", "denomClaseCoste": "Material de oficina", "descripClaseCoste": "Material de oficina", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 30.0, "moneda": "USD", "usd": [0.0, 30.0, 0.0, 0.0, 30.0, 0.0, 0.0, 30.0, 0.0, 0.0, 30.0, 0.0]}, {"id": "L028", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000222", "denomClaseCoste": "Gastos alojamientos del personal", "descripClaseCoste": "Gastos alojamientos del personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 80.0, "moneda": "USD", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 240.0, 0.0, 0.0]}, {"id": "L029", "ceco": "PEA2620102", "recurso": "Gastos De Viaje", "claseCoste": "4120000224", "denomClaseCoste": "Gs.: Vje./Vuelo naci", "descripClaseCoste": "Gastos de viajes nacionales", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 150.0, "moneda": "USD", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "L030", "ceco": "PEA2620102", "recurso": "Refrigerios", "claseCoste": "4120000223", "denomClaseCoste": "Consumos del Persona", "descripClaseCoste": "Consumos del Personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 30.0, "moneda": "USD", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 120.0, 0.0, 0.0]}, {"id": "L031", "ceco": "PEA2620102", "recurso": "Licencias/Patentes/Marcas", "claseCoste": "4120000213", "denomClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "descripClaseCoste": "Licencia Uso de Variedad, Patentes y marcas", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 630.0, "moneda": "USD", "usd": [630.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L032", "ceco": "PEA2620102", "recurso": "Transporte De Personal", "claseCoste": "4120000221", "denomClaseCoste": "Gastos Transporte Pe", "descripClaseCoste": "Gastos Transporte Personal", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 80.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 94.67, 0.0, 0.0]}, {"id": "L033", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 1900.0, "moneda": "PEN", "usd": [565.48, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L034", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 450.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 134.33, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L035", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 60.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 35.5, 0.0]}, {"id": "L036", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 30.0, "moneda": "PEN", "usd": [98.21, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L037", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 80.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 260.36, 0.0]}, {"id": "L038", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 250.0, "moneda": "PEN", "usd": [0.0, 74.4, 0.0, 74.63, 0.0, 0.0, 0.0, 74.18, 0.0, 73.96, 0.0, 0.0]}, {"id": "L039", "ceco": "PEA2620102", "recurso": "Gastos de Feria y Eventos", "claseCoste": "4120000284", "denomClaseCoste": "Gastos de Feria", "descripClaseCoste": "Gastos de Feria y Eventos", "material": "", "textoMaterial": "", "tipo": "4.Clima Laboral", "umb": "UN", "pu": 70.0, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 229.85, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L040", "ceco": "PEA2620102", "recurso": "Capacitaciones al Personal", "claseCoste": "4120000242", "denomClaseCoste": "Cap.,seminarios, cur", "descripClaseCoste": "Capacitaciones (cursos, congresos, seminarios)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 150.0, "moneda": "USD", "usd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 150.0, 0.0, 0.0]}, {"id": "L041", "ceco": "PEA2620102", "recurso": "Capacitaciones al Personal", "claseCoste": "4120000242", "denomClaseCoste": "Cap.,seminarios, cur", "descripClaseCoste": "Capacitaciones (cursos, congresos, seminarios)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 186.0, "moneda": "USD", "usd": [0.0, 0.0, 0.0, 186.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L042", "ceco": "PEA2620102", "recurso": "Combustibles", "claseCoste": "4212000012", "denomClaseCoste": "Consumo de Combustib", "descripClaseCoste": "Consumo de Combustibles", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "GLN", "pu": 19.2049, "moneda": "PEN", "usd": [257.21, 320.08, 320.08, 401.3, 321.04, 366.9, 330.53, 233.65, 159.57, 159.09, 250.0, 227.28]}, {"id": "L043", "ceco": "PEA2620102", "recurso": "Gastos de Vehículos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 9.322034, "moneda": "PEN", "usd": [0.0, 22.2, 22.2, 27.83, 22.26, 27.83, 27.66, 22.13, 22.13, 5.52, 22.06, 22.06]}, {"id": "L044", "ceco": "PEA2620102", "recurso": "Gastos de Vehículos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 10.6, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 6.33, 6.33, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L045", "ceco": "PEA2620102", "recurso": "Gastos de Vehículos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 10.5, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 6.27, 6.27, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L046", "ceco": "PEA2620102", "recurso": "Gastos de Vehículos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 16.9, "moneda": "PEN", "usd": [0.0, 0.0, 0.0, 10.09, 10.09, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}, {"id": "L047", "ceco": "PEA2620102", "recurso": "Gastos de Vehículos", "claseCoste": "4120000225", "denomClaseCoste": "Gts de Vehíc. peajes", "descripClaseCoste": "Gastos de Vehículos (peajes, estacionamientos)", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 50.0, "moneda": "PEN", "usd": [14.88, 14.88, 14.88, 14.93, 14.93, 14.93, 14.84, 14.84, 14.84, 14.79, 14.79, 14.79]}, {"id": "L048", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 49.9, "moneda": "PEN", "usd": [14.85, 14.85, 14.85, 14.9, 14.9, 14.9, 14.81, 14.81, 14.81, 14.76, 14.76, 14.76]}, {"id": "L049", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L050", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L051", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L052", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L053", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L054", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L055", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L056", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L057", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L058", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L059", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [8.9, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 8.87, 8.87, 8.85, 8.85, 8.85]}, {"id": "L060", "ceco": "PEA2620102", "recurso": "Telefono y Comunicaciones", "claseCoste": "4120000217", "denomClaseCoste": "Gastos de Internet", "descripClaseCoste": "Gastos de Internet", "material": "", "textoMaterial": "", "tipo": "6.Otros", "umb": "UN", "pu": 29.9, "moneda": "PEN", "usd": [0.0, 8.9, 8.9, 8.93, 8.93, 8.93, 8.87, 0.0, 0.0, 0.0, 0.0, 0.0]}], "totalFoco": 9280.65, "totalPpto": 21945.9};
+const KEY  = "gav-tracker-v2";
 const MES  = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const EPS  = 0.5;                       // tolerancia de redondeo: medio dólar
+const MONTHS = BASE.season.months, NM = MONTHS.length;
+const FOCO = BASE.foco;
 const $  = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+
+const GROUPS = [
+  {k:"", lab:"— nada —"},
+  {k:"denominacion",      lab:"Denominación"},
+  {k:"texto",             lab:"Texto de cabecera"},
+  {k:"denomClaseCoste",   lab:"Denom. clase de coste"},
+  {k:"descripClaseCoste", lab:"Descripción clase de coste"},
+  {k:"mes",               lab:"Mes"},
+];
 
 /* ---------------- estado ---------------- */
 let ST = load();
 function load(){
-  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v===1) return s; }catch(e){}
-  return {v:1, season:BASE.seasons[0].id, plan:{}, movs:[], open:{}, theme:null};
+  try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.v===2) return s; }catch(e){}
+  return {v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:["denominacion","texto"], sel:[], theme:null};
 }
 const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){ toast("No se pudo guardar en este navegador",1); } };
 
-const S    = ()=>BASE.seasons.find(s=>s.id===ST.season) || BASE.seasons[0];
-const NM   = ()=>S().months.length;
 const fmt  = (n,d=0)=>(n==null||isNaN(n))?"–":n.toLocaleString("es-PE",{minimumFractionDigits:d,maximumFractionDigits:d});
-const EPS  = 0.5;                       // tolerancia de redondeo: medio dólar
 const fmt0 = n=>Math.abs(n)<EPS?"–":fmt(n,0);
-const mLab = k=>{const [y,m]=k.split("_");return MES[+m-1]+" "+y.slice(2);};
+const mLab = i=>MES[+MONTHS[i].split("_")[1]-1]+" "+MONTHS[i].slice(2,4);
 const esc  = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s=>String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+const sum  = a=>a.reduce((x,y)=>x+y,0);
+const uid  = ()=>"x"+(Date.now().toString(36))+Math.random().toString(36).slice(2,7);
 
-/* mes en curso dentro de la temporada (-1 si la temporada no ha empezado, NM si ya cerró) */
+/* mes en curso dentro de la temporada (-1 antes de empezar, NM si ya cerró) */
 function curIdx(){
   const d=new Date(), k=d.getFullYear()+"_"+String(d.getMonth()+1).padStart(2,"0");
-  const ms=S().months, i=ms.indexOf(k);
-  if(i>=0) return i;
-  return k < ms[0] ? -1 : ms.length;
+  const i=MONTHS.indexOf(k);
+  return i>=0 ? i : (k<MONTHS[0] ? -1 : NM);
 }
+const CUR = ()=>Math.max(0,Math.min(curIdx(),NM-1));
 
-/* ---------------- agregación del baseline ---------------- */
-function tree(){
-  const t = new Map();          // recurso -> {ppto, mes[], hijos:Map(denom -> {ppto,mes,hijos:Map(descrip)})}
-  const n = NM();
-  const mk = ()=>({ppto:0, mes:Array(n).fill(0), hijos:new Map()});
-  for(const l of S().lines){
-    const r = t.get(l.recurso) || mk(); t.set(l.recurso, r);
-    const d = r.hijos.get(l.denomClaseCoste||"(sin denominación)") || mk();
-    r.hijos.set(l.denomClaseCoste||"(sin denominación)", d);
-    const x = d.hijos.get(l.descripClaseCoste||"(sin descripción)") || mk();
-    d.hijos.set(l.descripClaseCoste||"(sin descripción)", x);
-    for(let i=0;i<n;i++){ const v=l.usd[i]||0; r.mes[i]+=v; d.mes[i]+=v; x.mes[i]+=v; r.ppto+=v; d.ppto+=v; x.ppto+=v; }
-  }
-  return t;
+/* ---------------- consultas ---------------- */
+const partsOf = r=>ST.parts.filter(p=>p.recurso===r);
+const asigR   = r=>sum(partsOf(r).map(p=>+p.monto||0));
+const tope    = r=>BASE.topes[r]||0;
+const TOPE    = sum(FOCO.map(tope));
+
+function ejecR(r){
+  let e=0,c=0;
+  for(const m of ST.movs) if(m.recurso===r) (m.estado==="ejecutado" ? e+=m.usd : c+=m.usd);
+  return {e,c};
 }
-let T = tree();
-const recursos = ()=>[...T.keys()].sort((a,b)=>a.localeCompare(b,"es"));
-const pptoR    = r=>T.get(r)?.ppto || 0;
-const TOPE     = ()=>[...T.values()].reduce((a,x)=>a+x.ppto,0);
-
-/* mapa denom.clase de coste -> recurso (para clasificar la extracción de SAP) */
-const MAPDEN = (()=>{ const m={};
-  for(const s of BASE.seasons) for(const l of s.lines){
-    if(l.denomClaseCoste) m[norm(l.denomClaseCoste)] = l.recurso;
-    if(l.descripClaseCoste) m[norm(l.descripClaseCoste)] ??= l.recurso;
-    if(l.claseCoste) m["cc:"+String(l.claseCoste).trim()] = l.recurso;
-  } return m; })();
-function norm(s){ return String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim(); }
-
-/* ---------------- plan (reprogramación) ---------------- */
-function plan(){
-  const p = ST.plan[ST.season] ||= {};
-  for(const r of recursos()) if(!Array.isArray(p[r]) || p[r].length!==NM()) p[r] = T.get(r).mes.slice();
-  return p;
+function mesAgg(){
+  const P=Array(NM).fill(0), E=Array(NM).fill(0), C=Array(NM).fill(0);
+  for(const p of ST.parts) if(p.mi>=0&&p.mi<NM) P[p.mi]+=+p.monto||0;
+  for(const m of ST.movs){ const i=m.mi; if(i>=0&&i<NM) (m.estado==="ejecutado"?E:C)[i]+=m.usd; }
+  return {P,E,C};
 }
-const planR = r=>plan()[r].reduce((a,b)=>a+b,0);
-
-/* ---------------- ejecución ---------------- */
-const movs = ()=>ST.movs.filter(m=>m.season===ST.season);
-function agg(){
-  const n=NM(), ms=S().months, z=()=>({e:Array(n).fill(0), c:Array(n).fill(0)});
-  const byR={}, byD={}, byX={};
-  for(const m of movs()){
-    const i = ms.indexOf(m.mes); if(i<0) continue;
-    const k = m.estado==="ejecutado" ? "e" : "c";
-    (byR[m.recurso] ||= z())[k][i] += m.usd;
-    (byD[m.recurso+"§"+(m.denom||"")] ||= z())[k][i] += m.usd;
-    (byX[m.recurso+"§"+(m.denom||"")+"§"+(m.descrip||"")] ||= z())[k][i] += m.usd;
-  }
-  return {byR, byD, byX};
-}
-let A = agg();
-const sum = a=>a.reduce((x,y)=>x+y,0);
-const upto = (a,i)=>a.slice(0,i+1).reduce((x,y)=>x+y,0);
-
-/* semáforo: rojo si consume más que el ppto, ámbar desde 90 %, verde bajo eso */
-function sem(cons, ppto){
-  if(ppto<=0) return cons>EPS ? ["crit","Sin presupuesto"] : ["good","—"];
-  const p = cons/ppto;
-  if(cons>ppto+EPS) return ["crit","Excedido "+fmt((p-1)*100,0)+"%"];
-  if(p>=0.9)        return ["warn","Al "+fmt(Math.min(p,1)*100,0)+"%"];
+function sem(cons, t){
+  if(t<=0) return cons>EPS ? ["crit","Sin tope"] : ["good","—"];
+  const p=cons/t;
+  if(cons>t+EPS) return ["crit","Excedido "+fmt((p-1)*100,0)+"%"];
+  if(p>=0.9)     return ["warn","Al "+fmt(Math.min(p,1)*100,0)+"%"];
   return ["good", fmt(p*100,0)+"%"];
 }
-const semHTML=(c,ppto)=>{const[k,t]=sem(c,ppto);return `<span class="sem"><i class="dot ${k}"></i>${esc(t)}</span>`;};
+const semHTML=(c,t)=>{const[k,x]=sem(c,t);return `<span class="sem"><i class="dot ${k}"></i>${esc(x)}</span>`;};
+function barHTML(e,c,t){
+  if(t<=0) return `<div class="bar"></div>`;
+  const pe=Math.min(100,e/t*100), pc=Math.min(100-pe,c/t*100);
+  return `<div class="bar"><i class="c" style="left:${pe}%;width:${pc}%"></i><i class="e" style="width:${pe}%"></i></div>`;
+}
 
-/* ================= RESUMEN ================= */
-function drawKpis(){
-  const tope=TOPE(), pl=recursos().reduce((a,r)=>a+planR(r),0);
-  let e=0,c=0; for(const m of movs()) (m.estado==="ejecutado"?(e+=m.usd):(c+=m.usd));
-  const disp=tope-e-c, over=recursos().filter(r=>{const a=A.byR[r];return a && (sum(a.e)+sum(a.c))>pptoR(r)+EPS;});
-  const i=curIdx(), planHoy = i<0?0 : recursos().reduce((a,r)=>a+upto(plan()[r], Math.min(i,NM()-1)),0);
-  const desv = planHoy-(e+c);
-  $("#kpis").innerHTML = [
-    kpi("Presupuesto temporada","accent","$"+fmt0(tope), S().label+" · tope duro"),
-    kpi("Plan reprogramado", pl>tope+EPS?"bad":"", "$"+fmt0(pl), pl>tope+EPS?"⚠ supera el tope":fmt((pl/tope)*100,1)+"% del tope repartido"),
-    kpi("Ejecutado","","$"+fmt0(e), fmt(tope?e/tope*100:0,1)+"% del presupuesto"),
-    kpi("Comprometido","","$"+fmt0(c), "pedido, aún no contabilizado"),
-    kpi("Disponible", disp<-EPS?"bad":"ok", "$"+fmt0(disp), disp<-EPS?"⚠ sobregiro":"queda por gastar"),
-    kpi("Avance vs. plan a la fecha", desv<-EPS?"bad":"", "$"+fmt0(Math.abs(desv)), Math.abs(desv)<EPS?"en línea con el plan":desv<0?"por encima del plan":"por debajo del plan"),
-    kpi("Recursos excedidos", over.length?"bad":"ok", String(over.length), over.length?over.slice(0,2).join(", ")+(over.length>2?"…":""):"ninguno")
+/* mapa clase de coste -> recurso, para clasificar lo que llega de SAP */
+const MAPCC = (()=>{ const m={};
+  for(const r of FOCO) for(const c of (BASE.clases[r]||[])){
+    if(c.cc) m["cc:"+String(c.cc).trim()]=r;
+    if(c.denomClaseCoste)   m[norm(c.denomClaseCoste)]=r;
+    if(c.descripClaseCoste) m[norm(c.descripClaseCoste)] ??= r;
+  } return m; })();
+const recFromSAP = (cc,den,des)=>MAPCC["cc:"+String(cc||"").trim()] || MAPCC[norm(den)] || MAPCC[norm(des)] || null;
+
+/* ================= ASIGNACIÓN ================= */
+function drawAsig(){
+  let tA=0,tE=0,tC=0;
+  for(const r of FOCO){ const {e,c}=ejecR(r); tA+=asigR(r); tE+=e; tC+=c; }
+  const libre=TOPE-tA;
+  $("#kAsig").innerHTML=[
+    kpi("Tope de los 3 recursos","accent","$"+fmt0(TOPE), FOCO.length+" recursos · regla dura"),
+    kpi("Asignado en partidas", tA>TOPE+EPS?"bad":"", "$"+fmt0(tA), fmt(TOPE?tA/TOPE*100:0,1)+"% del tope"),
+    kpi("Sin asignar", libre>EPS?"warn":libre<-EPS?"bad":"ok", "$"+fmt0(libre), libre<-EPS?"⚠ pasado del tope":libre>EPS?"libre para repartir":"todo repartido"),
+    kpi("Ejecutado","","$"+fmt0(tE), fmt(TOPE?tE/TOPE*100:0,1)+"% del tope"),
+    kpi("Comprometido","","$"+fmt0(tC),"pedido, aún no contabilizado"),
+    kpi("Disponible real", TOPE-tE-tC<-EPS?"bad":"ok", "$"+fmt0(TOPE-tE-tC), "tope menos ejecutado y comprometido"),
+    kpi("Partidas","",String(ST.parts.length),"líneas de plan que estás manejando"),
   ].join("");
+
+  $("#resList").innerHTML = FOCO.map(r=>resHTML(r)).join("");
+  wireAsig();
 }
 const kpi=(l,cls,v,f)=>`<div class="kpi ${cls}"><div class="lab">${esc(l)}</div><div class="val">${v}</div><div class="foot">${esc(f)}</div></div>`;
 
+function resHTML(r){
+  const t=tope(r), a=asigR(r), {e,c}=ejecR(r), libre=t-a, ps=partsOf(r), cur=CUR();
+  const mesTot=Array(NM).fill(0); for(const p of ps) if(p.mi>=0&&p.mi<NM) mesTot[p.mi]+=+p.monto||0;
+  const clases=BASE.clases[r]||[];
+  const nSel=ps.filter(p=>ST.sel.includes(p.id)).length;
+
+  const filas = ps.map(p=>{
+    const on=ST.sel.includes(p.id);
+    return `<tr class="${on?"on":""}" data-id="${p.id}">
+      <td class="l" style="width:26px"><input type="checkbox" data-sel="${p.id}" ${on?"checked":""}></td>
+      <td class="l" style="width:86px"><select class="pin ${p.mi<cur?"past":""}" data-f="mi" data-id="${p.id}">
+        ${MONTHS.map((m,i)=>`<option value="${i}" ${i===p.mi?"selected":""}>${mLab(i)}</option>`).join("")}</select></td>
+      <td class="l" style="min-width:170px"><input class="pin" data-f="denominacion" data-id="${p.id}" list="dlDenom" value="${esc(p.denominacion)}" placeholder="Denominación…"></td>
+      <td class="l" style="min-width:250px"><input class="pin" data-f="texto" data-id="${p.id}" list="dlTexto" value="${esc(p.texto)}" placeholder="Texto de cabecera…"></td>
+      <td class="l" style="width:210px"><select class="pin" data-f="cc" data-id="${p.id}">
+        ${clases.map(k=>`<option value="${esc(k.cc)}" ${k.cc===p.claseCoste?"selected":""}>${esc(k.denomClaseCoste)}</option>`).join("")}</select></td>
+      <td class="num" style="width:96px"><input class="pin n" data-f="monto" data-id="${p.id}" value="${(+p.monto||0)?fmt(+p.monto,2):""}" placeholder="0"></td>
+      <td class="l" style="width:104px">
+        <button class="btn sm" data-split="${p.id}" title="Dividir esta partida en dos">÷</button>
+        <button class="btn sm" data-dup="${p.id}" title="Duplicar">⧉</button>
+        <button class="btn sm danger" data-del="${p.id}" title="Borrar">✕</button></td></tr>`;
+  }).join("");
+
+  return `<div class="res" data-r="${esc(r)}">
+    <div class="reshead">
+      <h3>${esc(r)}</h3>
+      <div class="chips">
+        <div><span>Tope</span><b>$${fmt0(t)}</b></div>
+        <div><span>Asignado</span><b>$${fmt0(a)}</b></div>
+        <div><span>Sin asignar</span><b class="${libre<-EPS?"neg":libre>EPS?"":"pos"}">$${fmt0(libre)}</b></div>
+        <div><span>Comprometido</span><b>$${fmt0(c)}</b></div>
+        <div><span>Ejecutado</span><b>$${fmt0(e)}</b></div>
+        <div><span>Disponible</span><b class="${t-e-c<-EPS?"neg":"pos"}">$${fmt0(t-e-c)}</b></div>
+        <div style="min-width:110px"><span>Consumo</span>${barHTML(e,c,t)}</div>
+        <div>${semHTML(e+c,t)}</div>
+      </div>
+    </div>
+    <div class="tblwrap" style="border:0;border-radius:0;max-height:460px;overflow-y:auto">
+      <table class="pt"><thead><tr>
+        <th class="l"><input type="checkbox" data-all="${esc(r)}"></th><th class="l">Mes</th>
+        <th class="l">Denominación</th><th class="l">Texto de cabecera</th><th class="l">Clase de coste</th>
+        <th class="num">Monto USD</th><th class="l"></th></tr></thead>
+      <tbody>${filas||`<tr><td colspan="7" class="l dim" style="padding:12px">Sin partidas. Agrega la primera abajo.</td></tr>`}</tbody></table>
+    </div>
+    <div class="selbar ${nSel?"on":""}">
+      <b>${nSel} seleccionada(s)</b>
+      <span class="hint">Mover a</span>
+      <select data-movesel="${esc(r)}">${MONTHS.map((m,i)=>`<option value="${i}" ${i===cur?"selected":""}>${mLab(i)}</option>`).join("")}</select>
+      <button class="btn sm" data-doMove="${esc(r)}">Mover</button>
+      <button class="btn sm" data-dupSel="${esc(r)}">Duplicar</button>
+      <button class="btn sm danger" data-delSel="${esc(r)}">Borrar</button>
+      <button class="btn sm ghost" data-clrSel="${esc(r)}">Quitar selección</button>
+    </div>
+    <div class="pfoot">
+      <div class="toolbar">
+        <button class="btn sm" data-add="${esc(r)}">+ Partida</button>
+        ${libre>EPS?`<button class="btn sm" data-addlibre="${esc(r)}">+ Partida por el saldo ($${fmt0(libre)})</button>`:""}
+        <button class="btn sm ghost" data-restore="${esc(r)}">Restaurar original</button>
+      </div>
+      <div class="mini">${mesTot.map((v,i)=>`<i class="${i===cur?"cur":""} ${v<EPS?"z":""}" title="${mLab(i)}">${MES[+MONTHS[i].split("_")[1]-1]} ${v<EPS?"–":fmt0(v)}</i>`).join("")}</div>
+    </div></div>`;
+}
+
+function wireAsig(){
+  $$("#resList .pin").forEach(el=>{
+    const p=ST.parts.find(x=>x.id===el.dataset.id); if(!p) return;
+    const f=el.dataset.f;
+    if(el.tagName==="SELECT"){
+      el.onchange=()=>{
+        if(f==="mi") p.mi=+el.value;
+        if(f==="cc"){ const k=(BASE.clases[p.recurso]||[]).find(c=>c.cc===el.value);
+          if(k){ p.claseCoste=k.cc; p.denomClaseCoste=k.denomClaseCoste; p.descripClaseCoste=k.descripClaseCoste; } }
+        save(); refresh();
+      };
+      return;
+    }
+    if(f==="monto"){
+      el.onfocus=()=>{ el.value=(+p.monto||0)?Math.round(p.monto*100)/100:""; el.select(); };
+      el.onkeydown=ev=>{ if(ev.key==="Enter") el.blur(); };
+      el.onblur=()=>{
+        let v=parseFloat(String(el.value).replace(/[^\d.,-]/g,"").replace(/\.(?=\d{3}\b)/g,"").replace(",","."));
+        if(isNaN(v)||v<0) v=0;
+        const resto=sum(partsOf(p.recurso).filter(x=>x.id!==p.id).map(x=>+x.monto||0));
+        const max=tope(p.recurso)-resto;
+        if(v>max+EPS){ v=Math.max(0,max); toast(`Tope de «${p.recurso}»: máximo $${fmt(max,2)} en esta partida. Se ajustó al disponible.`,1); }
+        p.monto=Math.round(v*100)/100; save(); refresh();
+      };
+      return;
+    }
+    el.onchange=()=>{ p[f]=el.value.trim(); save(); drawCtrl(); fillDatalists(); };
+  });
+
+  $$("#resList [data-sel]").forEach(el=>el.onchange=()=>{
+    const id=el.dataset.sel;
+    ST.sel = el.checked ? [...new Set([...ST.sel,id])] : ST.sel.filter(x=>x!==id);
+    save(); drawAsig();
+  });
+  $$("#resList [data-all]").forEach(el=>el.onchange=()=>{
+    const ids=partsOf(el.dataset.all).map(p=>p.id);
+    ST.sel = el.checked ? [...new Set([...ST.sel,...ids])] : ST.sel.filter(x=>!ids.includes(x));
+    save(); drawAsig();
+  });
+  $$("#resList [data-dup]").forEach(el=>el.onclick=()=>dupPart(el.dataset.dup));
+  $$("#resList [data-split]").forEach(el=>el.onclick=()=>splitPart(el.dataset.split));
+  $$("#resList [data-del]").forEach(el=>el.onclick=()=>{
+    ST.parts=ST.parts.filter(p=>p.id!==el.dataset.del); ST.sel=ST.sel.filter(x=>x!==el.dataset.del); save(); refresh(); });
+  $$("#resList [data-add]").forEach(el=>el.onclick=()=>addPart(el.dataset.add,0));
+  $$("#resList [data-addlibre]").forEach(el=>el.onclick=()=>{
+    const r=el.dataset.addlibre; addPart(r, Math.max(0,tope(r)-asigR(r))); });
+  $$("#resList [data-restore]").forEach(el=>el.onclick=()=>{
+    const r=el.dataset.restore;
+    if(!confirm(`¿Devolver «${r}» a las partidas originales del presupuesto? Se pierde lo que hayas asignado en ese recurso.`)) return;
+    ST.parts=[...ST.parts.filter(p=>p.recurso!==r), ...structuredClone(BASE.parts.filter(p=>p.recurso===r))];
+    save(); refresh(); toast(`«${r}» restaurado`);
+  });
+  $$("#resList [data-doMove]").forEach(el=>el.onclick=()=>{
+    const r=el.dataset.domove ?? el.getAttribute("data-doMove");
+    const mi=+$(`[data-movesel="${CSS.escape(r)}"]`).value;
+    let n=0; for(const p of ST.parts) if(p.recurso===r && ST.sel.includes(p.id)){ p.mi=mi; n++; }
+    ST.sel=ST.sel.filter(id=>!partsOf(r).some(p=>p.id===id)); save(); refresh();
+    toast(n?`${n} partida(s) movidas a ${mLab(mi)}`:"No había partidas seleccionadas",n?0:1);
+  });
+  $$("#resList [data-dupSel]").forEach(el=>el.onclick=()=>{
+    const r=el.getAttribute("data-dupSel");
+    const ids=partsOf(r).filter(p=>ST.sel.includes(p.id)).map(p=>p.id);
+    if(!ids.length) return toast("No había partidas seleccionadas",1);
+    let libre=tope(r)-asigR(r), n=0;
+    for(const id of ids){ if(libre<=EPS) break; const src=ST.parts.find(p=>p.id===id);
+      const monto=Math.min(+src.monto||0, libre);
+      ST.parts.push({...src, id:uid(), monto:Math.round(monto*100)/100}); libre-=monto; n++; }
+    save(); refresh();
+    toast(n<ids.length ? `${n} de ${ids.length} duplicadas; el resto no entraba en el tope` : `${n} partida(s) duplicadas`, n<ids.length?1:0);
+  });
+  $$("#resList [data-delSel]").forEach(el=>el.onclick=()=>{
+    const r=el.getAttribute("data-delSel");
+    const ids=partsOf(r).filter(p=>ST.sel.includes(p.id)).map(p=>p.id);
+    if(!ids.length) return toast("No había partidas seleccionadas",1);
+    if(!confirm(`¿Borrar ${ids.length} partida(s) de «${r}»?`)) return;
+    ST.parts=ST.parts.filter(p=>!ids.includes(p.id)); ST.sel=ST.sel.filter(x=>!ids.includes(x));
+    save(); refresh(); toast(`${ids.length} partida(s) borradas`);
+  });
+  $$("#resList [data-clrSel]").forEach(el=>el.onclick=()=>{
+    const ids=partsOf(el.getAttribute("data-clrSel")).map(p=>p.id);
+    ST.sel=ST.sel.filter(x=>!ids.includes(x)); save(); drawAsig();
+  });
+}
+function addPart(r, monto){
+  const k=(BASE.clases[r]||[])[0]||{};
+  ST.parts.push({id:uid(), recurso:r, mi:CUR(), claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
+    descripClaseCoste:k.descripClaseCoste||"", denominacion:"", texto:"", monto:Math.round((monto||0)*100)/100});
+  save(); refresh();
+  const inp=$$(`#resList .res[data-r="${CSS.escape(r)}"] .pin[data-f="denominacion"]`).pop();
+  if(inp){ inp.focus(); inp.scrollIntoView({block:"center",behavior:"smooth"}); }
+}
+/* separa un monto de una partida hacia otra nueva: reparte sin tocar el tope */
+function splitPart(id){
+  const src=ST.parts.find(p=>p.id===id); if(!src) return;
+  const total=+src.monto||0;
+  if(total<=EPS) return toast("Esa partida está en cero: no hay nada que dividir",1);
+  const txt=prompt(`Dividir «${src.denominacion||src.texto||"partida"}» ($${fmt(total,2)}).\n\n¿Cuánto separas hacia una partida nueva?`, (Math.round(total/2*100)/100).toString());
+  if(txt===null) return;
+  let v=parseFloat(String(txt).replace(",","."));
+  if(isNaN(v)||v<=0) return toast("Monto no válido",1);
+  if(v>total-0.01){ v=Math.round((total-0.01)*100)/100; toast(`Se separó $${fmt(v,2)}: hay que dejar algo en la partida original`,1); }
+  v=Math.round(v*100)/100;
+  src.monto=Math.round((total-v)*100)/100;
+  const i=ST.parts.findIndex(p=>p.id===id);
+  ST.parts.splice(i+1,0,{...src, id:uid(), monto:v});
+  save(); refresh();
+}
+function dupPart(id){
+  const src=ST.parts.find(p=>p.id===id); if(!src) return;
+  const libre=tope(src.recurso)-asigR(src.recurso);
+  if(libre<=EPS) return toast(`«${src.recurso}» no tiene saldo libre: la copia entraría en 0`,1);
+  ST.parts.push({...src, id:uid(), monto:Math.round(Math.min(+src.monto||0,libre)*100)/100});
+  save(); refresh();
+}
+
+/* ================= CONTROL ================= */
+function drawCtrlKpis(){
+  let tA=0,tE=0,tC=0; for(const r of FOCO){ const {e,c}=ejecR(r); tA+=asigR(r); tE+=e; tC+=c; }
+  const i=curIdx();
+  const asigHoy = i<0?0 : sum(ST.parts.filter(p=>p.mi<=Math.min(i,NM-1)).map(p=>+p.monto||0));
+  const desv = asigHoy-(tE+tC);
+  const over = FOCO.filter(r=>{const {e,c}=ejecR(r); return e+c>tope(r)+EPS;});
+  $("#kCtrl").innerHTML=[
+    kpi("Tope","accent","$"+fmt0(TOPE),"Viajes + Ferias + Refrigerios"),
+    kpi("Asignado","","$"+fmt0(tA), fmt(TOPE?tA/TOPE*100:0,1)+"% repartido"),
+    kpi("Ejecutado","","$"+fmt0(tE), fmt(TOPE?tE/TOPE*100:0,1)+"% del tope"),
+    kpi("Comprometido","","$"+fmt0(tC),"pedido, aún no contabilizado"),
+    kpi("Disponible", TOPE-tE-tC<-EPS?"bad":"ok","$"+fmt0(TOPE-tE-tC), TOPE-tE-tC<-EPS?"⚠ sobregiro":"queda por gastar"),
+    kpi("Avance vs. lo asignado a la fecha", desv<-EPS?"bad":"", "$"+fmt0(Math.abs(desv)),
+        Math.abs(desv)<EPS?"en línea":desv<0?"por encima de lo asignado":"por debajo de lo asignado"),
+    kpi("Recursos excedidos", over.length?"bad":"ok", String(over.length), over.length?over.join(", "):"ninguno"),
+  ].join("");
+}
+
 function drawCtrl(){
-  const hastaHoy=$("#ckAcum").checked, i=Math.min(Math.max(curIdx(),0),NM()-1);
-  const cut = a => hastaHoy ? upto(a,i) : sum(a);
-  const head = `<thead><tr>
-    <th>Recurso / Denom. clase de coste / Descripción</th>
-    <th class="num">Ppto</th><th class="num">Plan</th><th class="num">Comprometido</th>
-    <th class="num">Ejecutado</th><th class="num">Ejec.+Comp.</th><th class="num">Disponible</th>
-    <th>Consumo</th><th>Estado</th></tr></thead>`;
-  let body="", tp=0,tpl=0,tc=0,te=0;
-  for(const r of recursos()){
-    const R=T.get(r), a=A.byR[r]||{e:[],c:[]};
-    const p = hastaHoy ? upto(R.mes,i) : R.ppto;
-    const pl= hastaHoy ? upto(plan()[r],i) : planR(r);
-    const ce=cut(a.e||[]), cc=cut(a.c||[]);
-    tp+=p; tpl+=pl; tc+=cc; te+=ce;
-    body += rowHTML(0,r,r,p,pl,cc,ce,R.hijos.size>0);
-    if(ST.open[r]){
-      for(const [d,D] of [...R.hijos].sort((x,y)=>x[0].localeCompare(y[0],"es"))){
-        const ad=A.byD[r+"§"+d]||{e:[],c:[]};
-        const kd=r+"§"+d;
-        body += rowHTML(1,kd,d, hastaHoy?upto(D.mes,i):D.ppto, hastaHoy?upto(D.mes,i):D.ppto, cut(ad.c||[]), cut(ad.e||[]), D.hijos.size>1);
-        if(ST.open[kd]) for(const [x,X] of [...D.hijos].sort((p,q)=>p[0].localeCompare(q[0],"es"))){
-          const ax=A.byX[r+"§"+d+"§"+x]||{e:[],c:[]};
-          body += rowHTML(2,kd+"§"+x,x, hastaHoy?upto(X.mes,i):X.ppto, hastaHoy?upto(X.mes,i):X.ppto, cut(ax.c||[]), cut(ax.e||[]), false);
-        }
-      }
+  drawCtrlKpis();
+  const g1=ST.g[0]||"", g2=ST.g[1]||"";
+  const key=o=>o==="mes" ? (x=>x.mi>=0?mLab(x.mi):"—") : (x=>String(x[o]||"").trim()||"(sin dato)");
+  const labs={}; GROUPS.forEach(g=>labs[g.k]=g.lab);
+
+  /* nodo: {a:asignado, e, c} */
+  const tree={};
+  const bump=(r,k1,k2,f,v)=>{
+    const R=tree[r] ||= {a:0,e:0,c:0,h:{}}; R[f]+=v;
+    if(!g1) return;
+    const A=R.h[k1] ||= {a:0,e:0,c:0,h:{}}; A[f]+=v;
+    if(!g2) return;
+    const B=A.h[k2] ||= {a:0,e:0,c:0,h:{}}; B[f]+=v;
+  };
+  for(const r of FOCO) tree[r] ||= {a:0,e:0,c:0,h:{}};
+  for(const p of ST.parts) bump(p.recurso, g1?key(g1)(p):"", g2?key(g2)(p):"", "a", +p.monto||0);
+  for(const m of ST.movs) bump(m.recurso, g1?key(g1)(m):"", g2?key(g2)(m):"", m.estado==="ejecutado"?"e":"c", m.usd);
+
+  const cols=`<thead><tr><th class="l">Recurso${g1?" / "+labs[g1]:""}${g2?" / "+labs[g2]:""}</th>
+    <th class="num">Tope</th><th class="num">Asignado</th><th class="num">Comprometido</th><th class="num">Ejecutado</th>
+    <th class="num">Ejec.+Comp.</th><th class="num">Disponible</th><th class="l">Consumo</th><th class="l">Estado</th></tr></thead>`;
+  let body="", T={t:0,a:0,e:0,c:0};
+  const sortK=o=>[...Object.entries(o)].sort((x,y)=>x[0].localeCompare(y[0],"es",{numeric:true}));
+
+  for(const r of FOCO){
+    const R=tree[r], t=tope(r); T.t+=t; T.a+=R.a; T.e+=R.e; T.c+=R.c;
+    body+=row(0,r,r,t,R,Object.keys(R.h).length>0,true);
+    if(ST.open[r]) for(const [k1,A] of sortK(R.h)){
+      const kk=r+"§"+k1;
+      body+=row(1,kk,k1,0,A,Object.keys(A.h).length>0,false);
+      if(ST.open[kk]) for(const [k2,B] of sortK(A.h)) body+=row(2,kk+"§"+k2,k2,0,B,false,false);
     }
   }
-  /* movimientos que no calzan con ningún recurso del presupuesto */
-  const huerf={}; for(const m of movs()) if(!T.has(m.recurso)) (huerf[m.recurso] ||= {e:0,c:0})[m.estado==="ejecutado"?"e":"c"] += m.usd;
-  for(const [r,v] of Object.entries(huerf)){ te+=v.e; tc+=v.c; body += rowHTML(0,"@"+r,r+" (sin presupuesto)",0,0,v.c,v.e,false); }
+  /* movimientos cuya clase de coste no pertenece a los recursos en foco */
+  const otros={}; for(const m of ST.movs) if(!FOCO.includes(m.recurso))
+    (otros[m.recurso] ||= {a:0,e:0,c:0,h:{}})[m.estado==="ejecutado"?"e":"c"] += m.usd;
+  for(const [r,v] of Object.entries(otros)){ T.e+=v.e; T.c+=v.c; body+=row(0,"@"+r,r,0,v,false,false); }
 
-  const tt=tc+te;
-  body += `<tr class="tot"><td>Total general</td><td class="num">${fmt0(tp)}</td><td class="num">${fmt0(tpl)}</td>
-    <td class="num">${fmt0(tc)}</td><td class="num">${fmt0(te)}</td><td class="num">${fmt0(tt)}</td>
-    <td class="num ${tp-tt<-EPS?"neg":"pos"}">${fmt0(tp-tt)}</td><td>${barHTML(te,tc,tp)}</td><td>${semHTML(tt,tp)}</td></tr>`;
-  $("#tCtrl").innerHTML = head+"<tbody>"+body+"</tbody>";
+  const tt=T.e+T.c;
+  body+=`<tr class="tot"><td class="l">Total</td><td class="num">${fmt0(T.t)}</td><td class="num">${fmt0(T.a)}</td>
+    <td class="num">${fmt0(T.c)}</td><td class="num">${fmt0(T.e)}</td><td class="num">${fmt0(tt)}</td>
+    <td class="num ${T.t-tt<-EPS?"neg":"pos"}">${fmt0(T.t-tt)}</td><td class="l">${barHTML(T.e,T.c,T.t)}</td><td class="l">${semHTML(tt,T.t)}</td></tr>`;
+  $("#tCtrl").innerHTML=cols+"<tbody>"+body+"</tbody>";
   $$("#tCtrl .tw").forEach(el=>el.onclick=()=>{ ST.open[el.dataset.k]=!ST.open[el.dataset.k]; save(); drawCtrl(); });
+  drawCharts();
 }
-function rowHTML(lvl,key,label,ppto,pl,c,e,exp){
-  const t=c+e, d=ppto-t;
-  const tw = exp?`<span class="tw" data-k="${esc(key)}">${ST.open[key]?"⊟":"⊞"}</span>`:`<span class="tw"></span>`;
-  return `<tr class="lvl${lvl}"><td>${tw}${esc(label)}</td>
-    <td class="num">${fmt0(ppto)}</td><td class="num ${lvl?"dim":""}">${fmt0(pl)}</td>
-    <td class="num">${fmt0(c)}</td><td class="num">${fmt0(e)}</td><td class="num">${fmt0(t)}</td>
-    <td class="num ${d<-EPS?"neg":""}">${fmt0(d)}</td>
-    <td>${barHTML(e,c,ppto)}</td><td>${lvl?"":semHTML(t,ppto)}</td></tr>`;
-}
-function barHTML(e,c,p){
-  if(p<=0) return `<div class="bar"></div>`;
-  const pe=Math.min(100,e/p*100), pc=Math.min(100-pe,c/p*100);
-  return `<div class="bar"><i class="c" style="left:${pe}%;width:${pc}%"></i><i class="e" style="width:${pe}%"></i></div>`;
+function row(lvl,key,label,t,N,exp,isRes){
+  const tt=N.e+N.c, disp=isRes?t-tt:null;
+  const tw=exp?`<span class="tw" data-k="${esc(key)}">${ST.open[key]?"⊟":"⊞"}</span>`:`<span class="tw"></span>`;
+  return `<tr class="lvl${lvl}"><td class="l">${tw}${esc(label)}</td>
+    <td class="num">${isRes?fmt0(t):'<span class="dim">–</span>'}</td>
+    <td class="num">${fmt0(N.a)}</td><td class="num">${fmt0(N.c)}</td><td class="num">${fmt0(N.e)}</td>
+    <td class="num">${fmt0(tt)}</td>
+    <td class="num ${disp!=null&&disp<-EPS?"neg":""}">${isRes?fmt0(disp):`<span class="dim">${fmt0(N.a-tt)}</span>`}</td>
+    <td class="l">${isRes?barHTML(N.e,N.c,t):barHTML(N.e,N.c,N.a)}</td>
+    <td class="l">${isRes?semHTML(tt,t):""}</td></tr>`;
 }
 
 /* ================= CHARTS ================= */
@@ -481,264 +667,205 @@ function showTip(ev,html){ TIP.innerHTML=html; TIP.classList.add("on");
 const hideTip=()=>TIP.classList.remove("on");
 
 function drawCharts(){
-  const n=NM(), ms=S().months, p=plan();
-  const P=Array(n).fill(0), E=Array(n).fill(0), C=Array(n).fill(0);
-  for(const r of recursos()) for(let i=0;i<n;i++) P[i]+=p[r][i];
-  for(const m of movs()){ const i=ms.indexOf(m.mes); if(i<0)continue; (m.estado==="ejecutado"?E:C)[i]+=m.usd; }
-  barChart($("#chMes"), ms, P, E, C);
-  lineChart($("#chAcum"), ms, P, E.map((v,i)=>v+C[i]), TOPE());
+  const {P,E,C}=mesAgg();
+  barChart($("#chMes"),P,E,C);
+  lineChart($("#chAcum"),P,E.map((v,i)=>v+C[i]),TOPE);
 }
-
-function barChart(host, ms, P, E, C){
+function barChart(host,P,E,C){
   const W=640,H=230,L=52,R=8,Tp=10,B=30, iw=W-L-R, ih=H-Tp-B;
   const max=Math.max(1,...P,...E.map((v,i)=>v+C[i]))*1.12;
-  const y=v=>Tp+ih-(v/max)*ih, bw=iw/ms.length;
-  let g="";
-  for(let t=0;t<=4;t++){ const v=max*t/4, yy=y(v);
-    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>
-        <text x="${L-7}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt0(v)}</text>`; }
-  let b="";
-  ms.forEach((m,i)=>{
-    const x0=L+i*bw, w=(bw-8)/2;
-    const hP=Math.max(0,ih-(y(P[i])-Tp)), hE=Math.max(0,ih-(y(E[i])-Tp)), hC=Math.max(0,ih-(y(C[i])-Tp));
-    b+=`<rect x="${x0+2}" y="${y(P[i])}" width="${w}" height="${hP}" rx="4" fill="var(--s1)"/>`;
-    if(E[i]>0) b+=`<rect x="${x0+w+6}" y="${y(E[i])}" width="${w}" height="${hE}" rx="4" fill="var(--s2)"/>`;
-    if(C[i]>0) b+=`<rect x="${x0+w+6}" y="${y(E[i]+C[i])}" width="${w}" height="${Math.max(0,hC-2)}" rx="4" fill="var(--s3)"/>`;
-    b+=`<text x="${x0+bw/2}" y="${H-B+16}" text-anchor="middle" font-size="10" fill="var(--muted)">${MES[+m.split("_")[1]-1]}</text>`;
-    b+=`<rect class="hit" x="${x0}" y="${Tp}" width="${bw}" height="${ih}" fill="transparent" data-i="${i}"/>`;
-  });
-  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Plan y ejecución por mes">${g}
-    <line x1="${L}" x2="${W-R}" y1="${Tp+ih}" y2="${Tp+ih}" stroke="var(--axis)"/>${b}</svg>`;
-  $$(".hit",host).forEach(el=>{
-    const i=+el.dataset.i;
-    el.onmousemove=ev=>showTip(ev,`<b>${mLab(ms[i])}</b>
-      <div><i style="background:var(--s1)"></i>Plan $${fmt0(P[i])}</div>
-      <div><i style="background:var(--s2)"></i>Ejecutado $${fmt0(E[i])}</div>
-      <div><i style="background:var(--s3)"></i>Comprometido $${fmt0(C[i])}</div>`);
-    el.onmouseleave=hideTip;
-  });
-}
-
-function lineChart(host, ms, P, EC, tope){
-  const W=640,H=230,L=52,R=10,Tp=10,B=30, iw=W-L-R, ih=H-Tp-B;
-  const cum=a=>a.reduce((acc,v,i)=>(acc.push((acc[i-1]||0)+v),acc),[]);
-  const cp=cum(P), ce=cum(EC);
-  const max=Math.max(tope, ...cp, ...ce)*1.1||1;
-  const x=i=>L+(ms.length===1?iw/2:i*iw/(ms.length-1)), y=v=>Tp+ih-(v/max)*ih;
+  const y=v=>Tp+ih-(v/max)*ih, bw=iw/NM;
   let g="";
   for(let t=0;t<=4;t++){ const v=max*t/4, yy=y(v);
     g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>
         <text x="${L-7}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt0(v)}</text>`; }
+  let b="";
+  for(let i=0;i<NM;i++){
+    const x0=L+i*bw, w=(bw-8)/2;
+    b+=`<rect x="${x0+2}" y="${y(P[i])}" width="${w}" height="${Math.max(0,ih-(y(P[i])-Tp))}" rx="4" fill="var(--s1)"/>`;
+    if(E[i]>0) b+=`<rect x="${x0+w+6}" y="${y(E[i])}" width="${w}" height="${Math.max(0,ih-(y(E[i])-Tp))}" rx="4" fill="var(--s2)"/>`;
+    if(C[i]>0) b+=`<rect x="${x0+w+6}" y="${y(E[i]+C[i])}" width="${w}" height="${Math.max(0,ih-(y(C[i])-Tp)-2)}" rx="4" fill="var(--s3)"/>`;
+    b+=`<text x="${x0+bw/2}" y="${H-B+16}" text-anchor="middle" font-size="10" fill="var(--muted)">${MES[+MONTHS[i].split("_")[1]-1]}</text>
+        <rect class="hit" x="${x0}" y="${Tp}" width="${bw}" height="${ih}" fill="transparent" data-i="${i}"/>`;
+  }
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Asignado y ejecutado por mes">${g}
+    <line x1="${L}" x2="${W-R}" y1="${Tp+ih}" y2="${Tp+ih}" stroke="var(--axis)"/>${b}</svg>`;
+  $$(".hit",host).forEach(el=>{ const i=+el.dataset.i;
+    el.onmousemove=ev=>showTip(ev,`<b>${mLab(i)}</b>
+      <div><i style="background:var(--s1)"></i>Asignado $${fmt0(P[i])}</div>
+      <div><i style="background:var(--s2)"></i>Ejecutado $${fmt0(E[i])}</div>
+      <div><i style="background:var(--s3)"></i>Comprometido $${fmt0(C[i])}</div>`);
+    el.onmouseleave=hideTip; });
+}
+function lineChart(host,P,EC,t){
+  const W=640,H=230,L=52,R=10,Tp=10,B=30, iw=W-L-R, ih=H-Tp-B;
+  const cum=a=>a.reduce((acc,v,i)=>(acc.push((acc[i-1]||0)+v),acc),[]);
+  const cp=cum(P), ce=cum(EC), max=Math.max(t,...cp,...ce)*1.1||1;
+  const x=i=>L+i*iw/(NM-1), y=v=>Tp+ih-(v/max)*ih;
+  let g="";
+  for(let k=0;k<=4;k++){ const v=max*k/4, yy=y(v);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>
+        <text x="${L-7}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt0(v)}</text>`; }
   const path=a=>a.map((v,i)=>(i?"L":"M")+x(i)+" "+y(v)).join(" ");
-  const i=curIdx();
-  let marks="", hits="";
-  ms.forEach((m,k)=>{
-    if(EC[k]>0||k<=i) marks+=`<circle cx="${x(k)}" cy="${y(ce[k])}" r="3.5" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/>`;
-    marks+=`<text x="${x(k)}" y="${H-B+16}" text-anchor="middle" font-size="10" fill="var(--muted)">${MES[+m.split("_")[1]-1]}</text>`;
-    hits+=`<rect class="hit2" x="${x(k)-iw/(ms.length*2)}" y="${Tp}" width="${iw/ms.length}" height="${ih}" fill="transparent" data-i="${k}"/>`;
-  });
+  const cur=curIdx();
+  let marks="",hits="";
+  for(let k=0;k<NM;k++){
+    if(EC[k]>0||k<=cur) marks+=`<circle cx="${x(k)}" cy="${y(ce[k])}" r="3.5" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/>`;
+    marks+=`<text x="${x(k)}" y="${H-B+16}" text-anchor="middle" font-size="10" fill="var(--muted)">${MES[+MONTHS[k].split("_")[1]-1]}</text>`;
+    hits+=`<rect class="hit2" x="${x(k)-iw/(NM*2)}" y="${Tp}" width="${iw/NM}" height="${ih}" fill="transparent" data-i="${k}"/>`;
+  }
   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Consumo acumulado contra el tope">${g}
-    <line x1="${L}" x2="${W-R}" y1="${y(tope)}" y2="${y(tope)}" stroke="var(--axis)" stroke-width="2" stroke-dasharray="5 4"/>
-    <text x="${W-R}" y="${y(tope)-6}" text-anchor="end" font-size="10" fill="var(--ink-2)">Tope $${fmt0(tope)}</text>
+    <line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--axis)" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="${W-R}" y="${y(t)-6}" text-anchor="end" font-size="10" fill="var(--ink-2)">Tope $${fmt0(t)}</text>
     <path d="${path(cp)}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
     <path d="${path(ce)}" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round"/>
     <line x1="${L}" x2="${W-R}" y1="${Tp+ih}" y2="${Tp+ih}" stroke="var(--axis)"/>${marks}${hits}</svg>`;
-  $$(".hit2",host).forEach(el=>{
-    const k=+el.dataset.i;
-    el.onmousemove=ev=>showTip(ev,`<b>${mLab(ms[k])}</b>
-      <div><i style="background:var(--s1)"></i>Plan acum. $${fmt0(cp[k])}</div>
+  $$(".hit2",host).forEach(el=>{ const k=+el.dataset.i;
+    el.onmousemove=ev=>showTip(ev,`<b>${mLab(k)}</b>
+      <div><i style="background:var(--s1)"></i>Asignado acum. $${fmt0(cp[k])}</div>
       <div><i style="background:var(--s2)"></i>Ejec.+Comp. acum. $${fmt0(ce[k])}</div>
-      <div class="dim">Margen: $${fmt0(tope-ce[k])}</div>`);
-    el.onmouseleave=hideTip;
-  });
-}
-
-/* ================= PLAN MENSUAL ================= */
-function drawPlan(){
-  const ms=S().months, n=NM(), p=plan(), i=curIdx();
-  let h=`<thead><tr><th>Recurso</th><th class="num">Ppto</th>`;
-  ms.forEach((m,k)=>h+=`<th class="num" ${k===i?'style="color:var(--s1)"':""}>${MES[+m.split("_")[1]-1]}<br><span style="font-weight:400">${m.slice(2,4)}</span></th>`);
-  h+=`<th class="num">Plan</th><th class="num">Δ vs Ppto</th><th>Estado</th></tr></thead>`;
-  let b="";
-  for(const r of recursos()){
-    const ppto=pptoR(r), tot=planR(r), d=ppto-tot;
-    b+=`<tr class="lvl0"><td>${esc(r)}</td><td class="num">${fmt0(ppto)}</td>`;
-    for(let k=0;k<n;k++){
-      const a=A.byR[r], gastado=(a?((a.e[k]||0)+(a.c[k]||0)):0);
-      const over=gastado>p[r][k]+EPS;
-      b+=`<td class="num ${over?"over":""} ${k===i?"mcur":""}"><input class="cellin ${k<i?"past":""}" data-r="${esc(r)}" data-k="${k}" value="${p[r][k]?fmt(p[r][k],0):""}" placeholder="–"></td>`;
-    }
-    b+=`<td class="num"><b>${fmt0(tot)}</b></td><td class="num ${d<-EPS?"neg":d>EPS?"pos":""}">${fmt0(d)}</td>
-        <td>${d<-EPS?'<span class="sem"><i class="dot crit"></i>Excede el tope</span>':d>EPS?'<span class="sem"><i class="dot warn"></i>Sin asignar $'+fmt0(d)+'</span>':'<span class="sem"><i class="dot good"></i>Repartido</span>'}</td></tr>`;
-  }
-  const tp=TOPE(), tl=recursos().reduce((a,r)=>a+planR(r),0);
-  b+=`<tr class="tot"><td>Total</td><td class="num">${fmt0(tp)}</td>`;
-  for(let k=0;k<n;k++) b+=`<td class="num">${fmt0(recursos().reduce((a,r)=>a+p[r][k],0))}</td>`;
-  b+=`<td class="num">${fmt0(tl)}</td><td class="num ${tp-tl<-EPS?"neg":""}">${fmt0(tp-tl)}</td><td></td></tr>`;
-  $("#tPlan").innerHTML=h+"<tbody>"+b+"</tbody>";
-
-  $$("#tPlan .cellin").forEach(el=>{
-    el.onfocus=()=>{ const v=plan()[el.dataset.r][+el.dataset.k]; el.value=v?Math.round(v*100)/100:""; el.select(); };
-    el.onkeydown=ev=>{ if(ev.key==="Enter"){ el.blur(); } };
-    el.onblur=()=>{
-      const r=el.dataset.r, k=+el.dataset.k, pp=plan();
-      let v=parseFloat(String(el.value).replace(/[^\d.,-]/g,"").replace(/\.(?=\d{3}\b)/g,"").replace(",","."));
-      if(isNaN(v)||v<0) v=0;
-      const resto=pp[r].reduce((a,x,j)=>a+(j===k?0:x),0), max=pptoR(r)-resto;
-      if(v>max+EPS){ v=Math.max(0,max); toast(`Tope duro de «${r}»: máximo $${fmt0(max)} en ese mes. Se ajustó al disponible.`,1); }
-      pp[r][k]=v; save(); refresh();
-    };
-  });
-}
-
-/* traer a un mes destino el plan de meses cerrados que no se usó */
-function pullSaldo(){
-  const dest=+$("#selMoveTo").value, i=curIdx(), p=plan();
-  if(i<=0) return toast("No hay meses cerrados todavía",1);
-  if(dest<i) return toast("El mes destino debe ser el actual o uno futuro",1);
-  let mov=0, nR=0;
-  for(const r of recursos()){
-    const a=A.byR[r]; let libre=0;
-    for(let k=0;k<i;k++){
-      const usado=a?((a.e[k]||0)+(a.c[k]||0)):0;
-      const s=Math.max(0,p[r][k]-usado);
-      if(s>0.005){ libre+=s; p[r][k]-=s; }
-    }
-    if(libre>0.005){ p[r][dest]+=libre; mov+=libre; nR++; }
-  }
-  save(); refresh();
-  toast(mov>0.005?`Se movieron $${fmt0(mov)} de ${nR} recurso(s) a ${mLab(S().months[dest])}`:"No había saldo vencido por mover");
+      <div class="dim">Margen contra el tope: $${fmt0(t-ce[k])}</div>`);
+    el.onmouseleave=hideTip; });
 }
 
 /* ================= EJECUCIÓN ================= */
 function drawMov(){
   const fe=$("#fltEstado").value, fr=$("#fltRecurso").value, ft=norm($("#fltTxt").value);
-  const list=movs().filter(m=>(!fe||m.estado===fe)&&(!fr||m.recurso===fr)&&
-    (!ft||norm([m.concepto,m.recurso,m.denom,m.descrip,m.doc].join(" ")).includes(ft)))
-    .sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.id-a.id));
-  $("#nMov").textContent=movs().length;
-  let b="";
-  for(const m of list){
-    b+=`<tr><td>${esc(m.fecha||"")}</td><td>${esc(mLab(m.mes))}</td><td>${esc(m.recurso)}${T.has(m.recurso)?"":' <span class="err">⚠ fuera de ppto</span>'}</td>
-      <td>${esc(m.denom||"")}</td><td style="text-align:left;white-space:normal;max-width:280px">${esc(m.concepto||"")}</td>
-      <td>${esc(m.doc||"")}</td><td><span class="badge ${m.estado==="ejecutado"?"e":"c"}">${m.estado==="ejecutado"?"Ejecutado":"Comprometido"}</span></td>
-      <td class="num">${m.moneda==="PEN"?"S/ "+fmt(m.monto,2):""}</td><td class="num"><b>${fmt(m.usd,2)}</b></td>
-      <td>${m.origen==="sap"?'<span class="badge">SAP</span>':""}</td>
-      <td><button class="btn sm" data-tog="${m.id}">${m.estado==="ejecutado"?"↩ a comprom.":"✓ ejecutar"}</button>
-          <button class="btn sm" data-del="${m.id}">✕</button></td></tr>`;
-  }
-  $("#tMov").innerHTML=`<thead><tr><th>Fecha</th><th>Mes</th><th>Recurso</th><th>Denom. clase coste</th><th>Concepto</th>
-    <th>Doc.</th><th>Estado</th><th class="num">Orig.</th><th class="num">USD</th><th>Origen</th><th></th></tr></thead><tbody>${b||'<tr><td colspan="11" class="dim">Sin movimientos cargados.</td></tr>'}</tbody>`;
-  $$("#tMov [data-del]").forEach(el=>el.onclick=()=>{ ST.movs=ST.movs.filter(x=>x.id!=el.dataset.del); save(); refresh(); });
-  $$("#tMov [data-tog]").forEach(el=>el.onclick=()=>{ const m=ST.movs.find(x=>x.id==el.dataset.tog);
+  const list=ST.movs.filter(m=>(!fe||m.estado===fe)&&(!fr||m.recurso===fr)&&
+      (!ft||norm([m.denominacion,m.texto,m.recurso,m.denomClaseCoste,m.doc].join(" ")).includes(ft)))
+    .sort((a,b)=>(a.mi-b.mi)||String(a.fecha||"").localeCompare(String(b.fecha||"")));
+  $("#nMov").textContent=ST.movs.length;
+  const b=list.map(m=>`<tr>
+    <td class="l">${esc(m.fecha||"")}</td><td class="l">${esc(mLab(m.mi))}</td>
+    <td class="l">${esc(m.recurso)}${FOCO.includes(m.recurso)?"":' <span class="err">⚠ fuera de foco</span>'}</td>
+    <td class="l">${esc(m.denomClaseCoste||"")}</td>
+    <td class="l"><b>${esc(m.denominacion||"—")}</b></td>
+    <td class="l" style="white-space:normal;max-width:300px">${esc(m.texto||"")}</td>
+    <td class="l">${esc(m.doc||"")}</td>
+    <td class="l"><span class="badge ${m.estado==="ejecutado"?"e":"c"}">${m.estado==="ejecutado"?"Ejecutado":"Comprometido"}</span></td>
+    <td class="num">${m.moneda==="PEN"?"S/ "+fmt(m.monto,2):""}</td>
+    <td class="num"><b>${fmt(m.usd,2)}</b></td>
+    <td class="l">${m.origen==="sap"?'<span class="badge">SAP</span>':""}</td>
+    <td class="l"><button class="btn sm" data-tog="${m.id}">${m.estado==="ejecutado"?"↩":"✓"}</button>
+        <button class="btn sm danger" data-delm="${m.id}">✕</button></td></tr>`).join("");
+  $("#tMov").innerHTML=`<thead><tr><th class="l">Fecha</th><th class="l">Mes</th><th class="l">Recurso</th>
+    <th class="l">Clase de coste</th><th class="l">Denominación</th><th class="l">Texto de cabecera</th><th class="l">Doc.</th>
+    <th class="l">Estado</th><th class="num">Orig.</th><th class="num">USD</th><th class="l">Origen</th><th class="l"></th></tr></thead>
+    <tbody>${b||'<tr><td colspan="12" class="l dim">Sin movimientos cargados.</td></tr>'}</tbody>`;
+  $$("#tMov [data-delm]").forEach(el=>el.onclick=()=>{ ST.movs=ST.movs.filter(x=>x.id!==el.dataset.delm); save(); refresh(); });
+  $$("#tMov [data-tog]").forEach(el=>el.onclick=()=>{ const m=ST.movs.find(x=>x.id===el.dataset.tog);
     m.estado = m.estado==="ejecutado"?"comprometido":"ejecutado"; save(); refresh(); });
 }
+const tcMes = i=>BASE.season.tc[i] || BASE.season.tc[0] || 3.36;
 
-function tcMes(k){ const i=S().months.indexOf(k); return (i>=0 && S().tc[i]) || S().tc[0] || 3.36; }
-
+function fillClases(){
+  const r=$("#fRecurso").value, cs=BASE.clases[r]||[];
+  $("#fClase").innerHTML=cs.map(c=>`<option value="${esc(c.cc)}">${esc(c.denomClaseCoste)}</option>`).join("");
+}
 function addMov(){
   const f=$("#fFecha").value, r=$("#fRecurso").value, monto=parseFloat($("#fMonto").value);
   if(!f) return toast("Falta la fecha",1);
-  if(!r) return toast("Falta el recurso",1);
   if(!(monto>0)) return toast("Falta el monto",1);
-  const mes=f.slice(0,4)+"_"+f.slice(5,7);
-  if(!S().months.includes(mes)) return toast("Esa fecha está fuera de "+S().label,1);
-  const moneda=$("#fMoneda").value, usd = moneda==="PEN" ? monto/tcMes(mes) : monto;
-  const den=$("#fDenom").value;
-  const mv={id:Date.now()+Math.random(), season:ST.season, fecha:f, mes, recurso:r, denom:den, descrip:den,
-            concepto:$("#fConcepto").value.trim(), doc:$("#fDoc").value.trim(), estado:$("#fEstado").value,
-            monto, moneda, tc: moneda==="PEN"?tcMes(mes):1, usd, origen:"manual"};
-  ST.movs.push(mv); save();
-  const a=A.byR[r], gast=a?sum(a.e)+sum(a.c):0;
-  $("#fConcepto").value=""; $("#fMonto").value=""; $("#fDoc").value="";
+  const mes=f.slice(0,4)+"_"+f.slice(5,7), mi=MONTHS.indexOf(mes);
+  if(mi<0) return toast("Esa fecha está fuera de la temporada 26/27",1);
+  const moneda=$("#fMoneda").value, usd = moneda==="PEN" ? monto/tcMes(mi) : monto;
+  const k=(BASE.clases[r]||[]).find(c=>c.cc===$("#fClase").value)||{};
+  ST.movs.push({id:uid(), fecha:f, mi, recurso:r, claseCoste:k.cc||"", denomClaseCoste:k.denomClaseCoste||"",
+    descripClaseCoste:k.descripClaseCoste||"", denominacion:$("#fDenom").value.trim(), texto:$("#fTexto").value.trim(),
+    doc:$("#fDoc").value.trim(), estado:$("#fEstado").value, monto, moneda, tc:moneda==="PEN"?tcMes(mi):1,
+    usd:Math.round(usd*100)/100, origen:"manual"});
+  save();
+  $("#fMonto").value=""; $("#fDoc").value="";
   refresh();
-  const nuevo=(A.byR[r]?sum(A.byR[r].e)+sum(A.byR[r].c):0), pp=pptoR(r);
-  if(nuevo>pp+EPS) toast(`⚠ «${r}» quedó excedido en $${fmt0(nuevo-pp)} sobre su tope`,1);
-  else toast(`Cargado. Disponible en «${r}»: $${fmt0(pp-nuevo)}`);
-  avisoDisp();
+  const {e,c}=ejecR(r), t=tope(r);
+  if(e+c>t+EPS) toast(`⚠ «${r}» quedó excedido en $${fmt0(e+c-t)} sobre su tope`,1);
+  else toast(`Cargado. Disponible en «${r}»: $${fmt0(t-e-c)}`);
 }
 function avisoDisp(){
-  const r=$("#fRecurso").value; if(!r) return $("#fAviso").innerHTML="";
-  const a=A.byR[r], t=a?sum(a.e)+sum(a.c):0, pp=pptoR(r), pl=planR(r);
-  const [k]=sem(t,pp);
+  const r=$("#fRecurso").value; if(!r) return;
+  const {e,c}=ejecR(r), t=tope(r), a=asigR(r), [k]=sem(e+c,t);
   $("#fAviso").innerHTML=`<span class="sem"><i class="dot ${k}"></i></span> <b>${esc(r)}</b> ·
-    Ppto $${fmt0(pp)} · Plan $${fmt0(pl)} · Consumido $${fmt0(t)} ·
-    <b class="${pp-t<0?"neg":"pos"}">Disponible $${fmt0(pp-t)}</b>`;
+    Tope $${fmt0(t)} · Asignado $${fmt0(a)} · Consumido $${fmt0(e+c)} ·
+    <b class="${t-e-c<-EPS?"neg":"pos"}">Disponible $${fmt0(t-e-c)}</b>`;
 }
 
 /* ---- importar SAP ---- */
 const COLS={
-  ceco:["centro de coste"], anio:["ejercicio"], per:["periodo","período"],
-  cc:["clase de coste","info clase de coste"], den:["denom.clase de coste","denom clase de coste"],
-  des:["descrip.clases coste","descrip clases coste","denominación","denominacion"],
-  usd:["val/mon.so.co","val/mon so co","valor/moneda so.co"],
-  orig:["importe origen","valor/moneda objeto"], mon:["moneda origen"],
+  anio:["ejercicio"], per:["periodo","período"],
+  cc:["clase de coste","info clase de coste"],
+  den:["denom.clase de coste","denom clase de coste"],
+  des:["descrip.clases coste","descrip clases coste"],
+  nom:["denominación","denominacion"],
+  txt:["texto de cabecera de documento","texto de cabecera","texto de pedido"],
+  usd:["val/mon.so.co","val/mon so co"],
+  orig:["importe origen"], mon:["moneda origen"],
   doc:["número de documento","numero de documento","n° de documento","nº docum.refer.","documento compras"],
-  txt:["texto de cabecera de documento","texto de pedido","denominación"],
   fec:["fe.contabilización","fe.contabilizacion","fecha valor"]
 };
 function importSAP(){
   const raw=$("#taPaste").value.trim();
   if(!raw) return $("#pasteMsg").innerHTML='<span class="err">Pega los datos primero.</span>';
-  const rows=raw.split(/\r?\n/).map(l=>l.split("\t").length>1?l.split("\t"):l.split(/;|,(?=(?:[^"]*"[^"]*")*[^"]*$)/))
+  const rows=raw.split(/\r?\n/).map(l=>l.includes("\t")?l.split("\t"):l.split(/;|,(?=(?:[^"]*"[^"]*")*[^"]*$)/))
                 .map(a=>a.map(s=>String(s).replace(/^"|"$/g,"").trim()));
   const hdr=rows[0].map(norm), idx={};
   for(const [k,names] of Object.entries(COLS)) idx[k]=hdr.findIndex(h=>names.some(n=>h===norm(n)));
-  if(idx.usd<0 && idx.orig<0) return $("#pasteMsg").innerHTML='<span class="err">No encuentro la columna de monto (Val/Mon.so.CO o Importe Origen). Revisa que hayas copiado la fila de encabezados.</span>';
-  if(idx.anio<0||idx.per<0) return $("#pasteMsg").innerHTML='<span class="err">No encuentro Ejercicio y Período.</span>';
+  if(idx.usd<0 && idx.orig<0) return $("#pasteMsg").innerHTML='<span class="err">No encuentro la columna de monto (Val/Mon.so.CO o Importe Origen). ¿Copiaste la fila de encabezados?</span>';
+  if(idx.anio<0||idx.per<0)   return $("#pasteMsg").innerHTML='<span class="err">No encuentro Ejercicio y Período.</span>';
 
-  if($("#ckReplace").checked) ST.movs=ST.movs.filter(m=>!(m.season===ST.season&&m.origen==="sap"));
+  if($("#ckReplace").checked) ST.movs=ST.movs.filter(m=>m.origen!=="sap");
   const numify=s=>{ if(!s) return 0; s=String(s).replace(/\s/g,"");
     if(/,\d{1,2}$/.test(s)) s=s.replace(/\./g,"").replace(",","."); else s=s.replace(/,/g,"");
     const v=parseFloat(s); return isNaN(v)?0:v; };
-  let ok=0, fuera=0, sinRec=new Set();
+  const get=(row,k)=>idx[k]>=0?(row[idx[k]]||""):"";
+  let ok=0, fuera=0, noFoco=0;
   for(const row of rows.slice(1)){
     if(!row.length||row.every(c=>!c)) continue;
-    const mes=(row[idx.anio]||"").trim()+"_"+String(row[idx.per]||"").trim().padStart(2,"0");
-    if(!S().months.includes(mes)){ fuera++; continue; }
-    let usd = idx.usd>=0 ? numify(row[idx.usd]) : 0;
-    const mon = idx.mon>=0 ? (row[idx.mon]||"").toUpperCase() : "";
-    if(!usd && idx.orig>=0){ const o=numify(row[idx.orig]); usd = mon==="PEN" ? o/tcMes(mes) : o; }
-    if(!usd) continue;
-    const den = idx.den>=0 ? row[idx.den] : "";
-    const des = idx.des>=0 ? row[idx.des] : "";
-    const cc  = idx.cc>=0  ? row[idx.cc]  : "";
-    const rec = MAPDEN[norm(den)] || MAPDEN[norm(des)] || MAPDEN["cc:"+String(cc).trim()] || null;
-    if(!rec) sinRec.add(den||des||cc||"(sin clase de coste)");
-    ST.movs.push({id:Date.now()+Math.random(), season:ST.season, fecha:(idx.fec>=0&&row[idx.fec])||"",
-      mes, recurso:rec||("Sin clasificar: "+(den||des||cc||"?")), denom:den, descrip:des,
-      concepto:(idx.txt>=0?row[idx.txt]:"")||des||den, doc:(idx.doc>=0?row[idx.doc]:"")||"",
-      estado:"ejecutado", monto:usd, moneda:"USD", tc:1, usd, origen:"sap"});
+    const mes=get(row,"anio").trim()+"_"+get(row,"per").trim().padStart(2,"0");
+    const mi=MONTHS.indexOf(mes);
+    if(mi<0){ fuera++; continue; }
+    const cc=get(row,"cc"), den=get(row,"den"), des=get(row,"des");
+    const rec=recFromSAP(cc,den,des);
+    if(!rec){ noFoco++; continue; }
+    let usd=idx.usd>=0?numify(get(row,"usd")):0;
+    const mon=get(row,"mon").toUpperCase();
+    if(!usd && idx.orig>=0){ const o=numify(get(row,"orig")); usd = mon==="PEN" ? o/tcMes(mi) : o; }
+    if(Math.abs(usd)<0.005) continue;
+    ST.movs.push({id:uid(), fecha:get(row,"fec"), mi, recurso:rec, claseCoste:cc, denomClaseCoste:den,
+      descripClaseCoste:des, denominacion:get(row,"nom"), texto:get(row,"txt"), doc:get(row,"doc"),
+      estado:"ejecutado", monto:usd, moneda:"USD", tc:1, usd:Math.round(usd*100)/100, origen:"sap"});
     ok++;
   }
   save(); refresh();
   $("#pasteMsg").innerHTML=`<b>${ok}</b> movimientos importados como <i>ejecutado</i>.`+
-    (fuera?` · ${fuera} fuera de ${S().label} (ignorados).`:"")+
-    (sinRec.size?`<br><span class="err">⚠ ${sinRec.size} clase(s) de coste sin recurso en el presupuesto: ${[...sinRec].slice(0,4).map(esc).join(", ")}${sinRec.size>4?"…":""}. Quedaron como «Sin clasificar» al final del control.</span>`:"");
+    (fuera?` · ${fuera} fuera de la temporada 26/27.`:"")+
+    (noFoco?` · ${noFoco} de otros recursos (fuera de foco).`:"");
   if(ok) setTimeout(()=>{ $("#mPaste").classList.remove("on"); $("#taPaste").value=""; }, 1800);
 }
 
-/* ================= DETALLE ================= */
-function drawDet(){
-  const f=norm($("#fltDet").value), ms=S().months;
-  let h=`<thead><tr><th>Recurso</th><th>Denom. clase de coste</th><th>Descripción</th><th>Material / servicio</th>
-    <th>Tipo</th><th class="num">PU</th><th>Mon.</th>`;
-  ms.forEach(m=>h+=`<th class="num">${MES[+m.split("_")[1]-1]}</th>`);
-  h+=`<th class="num">Total USD</th></tr></thead>`;
-  let b="", tot=0;
-  for(const l of S().lines){
-    if(f && !norm([l.recurso,l.denomClaseCoste,l.descripClaseCoste,l.textoMaterial,l.material,l.claseCoste].join(" ")).includes(f)) continue;
-    const t=sum(l.usd); tot+=t;
-    b+=`<tr><td>${esc(l.recurso)}</td><td>${esc(l.denomClaseCoste)}</td><td>${esc(l.descripClaseCoste)}</td>
-      <td style="white-space:normal;max-width:230px">${esc(l.textoMaterial||"—")}</td><td>${esc(l.tipo)}</td>
-      <td class="num">${fmt(l.pu,2)}</td><td>${esc(l.moneda)}</td>`;
-    l.usd.forEach((v,i)=>b+=`<td class="num ${v?"":"dim"}">${v?fmt0(v):"–"}</td>`);
-    b+=`<td class="num"><b>${fmt0(t)}</b></td></tr>`;
+/* ================= RESTO ================= */
+function drawResto(){
+  const otros=BASE.lines.filter(l=>!FOCO.includes(l.recurso));
+  const by={};
+  for(const l of otros){ (by[l.recurso] ||= {t:0,d:{}}); by[l.recurso].t+=sum(l.usd);
+    (by[l.recurso].d[l.denomClaseCoste] ||= {t:0,m:Array(NM).fill(0)});
+    by[l.recurso].d[l.denomClaseCoste].t+=sum(l.usd);
+    l.usd.forEach((v,i)=>by[l.recurso].d[l.denomClaseCoste].m[i]+=v); }
+  const tot=sum(Object.values(by).map(x=>x.t));
+  $("#restoSub").innerHTML=`El presupuesto completo de la temporada es <b>$${fmt0(BASE.totalPpto)}</b>.
+    Esta herramienta gestiona <b>$${fmt0(BASE.totalFoco)}</b> (${FOCO.join(", ")}).
+    Los <b>$${fmt0(tot)}</b> restantes quedan acá solo como referencia.`;
+  let h=`<thead><tr><th class="l">Recurso / Denom. clase de coste</th>`;
+  for(let i=0;i<NM;i++) h+=`<th class="num">${MES[+MONTHS[i].split("_")[1]-1]}</th>`;
+  h+=`<th class="num">Total</th></tr></thead>`;
+  let b="";
+  for(const [r,R] of Object.entries(by).sort((a,c)=>a[0].localeCompare(c[0],"es"))){
+    const mm=Array(NM).fill(0); for(const d of Object.values(R.d)) d.m.forEach((v,i)=>mm[i]+=v);
+    b+=`<tr class="lvl0"><td class="l">${esc(r)}</td>${mm.map(v=>`<td class="num">${fmt0(v)}</td>`).join("")}<td class="num">${fmt0(R.t)}</td></tr>`;
+    for(const [d,D] of Object.entries(R.d).sort((a,c)=>a[0].localeCompare(c[0],"es")))
+      b+=`<tr class="lvl1"><td class="l">${esc(d)}</td>${D.m.map(v=>`<td class="num ${v<EPS?"dim":""}">${fmt0(v)}</td>`).join("")}<td class="num">${fmt0(D.t)}</td></tr>`;
   }
-  b+=`<tr class="tot"><td colspan="7">Total</td>`;
-  ms.forEach((m,i)=>b+=`<td class="num">${fmt0(S().lines.reduce((a,l)=>a+(l.usd[i]||0),0))}</td>`);
-  b+=`<td class="num">${fmt0(tot)}</td></tr>`;
-  $("#tDet").innerHTML=h+"<tbody>"+b+"</tbody>";
+  b+=`<tr class="tot"><td class="l">Total fuera de foco</td><td class="num" colspan="${NM}"></td><td class="num">${fmt0(tot)}</td></tr>`;
+  $("#tResto").innerHTML=h+"<tbody>"+b+"</tbody>";
 }
 
 /* ================= infra ================= */
@@ -746,41 +873,33 @@ let toastT;
 function toast(msg,bad){ const t=$("#toast"); t.textContent=msg; t.className="on"+(bad?" bad":"");
   clearTimeout(toastT); toastT=setTimeout(()=>t.className="",bad?4200:2400); }
 
-function refresh(){ T=tree(); A=agg(); drawKpis(); drawCtrl(); drawCharts(); drawPlan(); drawMov(); drawDet(); avisoDisp(); }
-
-function fillSelects(){
-  $("#selSeason").innerHTML=BASE.seasons.map(s=>`<option value="${s.id}" ${s.id===ST.season?"selected":""}>${esc(s.label)} · $${fmt0(s.total)}</option>`).join("");
-  const rs=recursos();
-  $("#fRecurso").innerHTML=`<option value="">— elegir —</option>`+rs.map(r=>`<option>${esc(r)}</option>`).join("");
-  $("#fltRecurso").innerHTML=`<option value="">Todos los recursos</option>`+rs.map(r=>`<option>${esc(r)}</option>`).join("");
-  $("#selMoveTo").innerHTML=S().months.map((m,i)=>`<option value="${i}">${mLab(m)}</option>`).join("");
-  const i=Math.max(0,Math.min(curIdx(),NM()-1)); $("#selMoveTo").value=i;
-  fillDenom();
-  const hoy=new Date().toISOString().slice(0,10);
-  $("#fFecha").value = S().months.includes(hoy.slice(0,4)+"_"+hoy.slice(5,7)) ? hoy : S().months[Math.max(0,Math.min(curIdx(),NM()-1))].replace("_","-")+"-01";
-  $("#hSub").textContent=`${BASE.header.entidad} · ${BASE.header.gerencia} · ${S().label} · Presupuesto USD ${fmt0(S().total)} · control en USD`;
+function fillDatalists(){
+  const dn=new Set(), dt=new Set();
+  for(const p of ST.parts){ if(p.denominacion) dn.add(p.denominacion); if(p.texto) dt.add(p.texto); }
+  for(const m of ST.movs){ if(m.denominacion) dn.add(m.denominacion); if(m.texto) dt.add(m.texto); }
+  $("#dlDenom").innerHTML=[...dn].sort((a,b)=>a.localeCompare(b,"es")).map(v=>`<option value="${esc(v)}">`).join("");
+  $("#dlTexto").innerHTML=[...dt].sort((a,b)=>a.localeCompare(b,"es")).map(v=>`<option value="${esc(v)}">`).join("");
 }
-function fillDenom(){
-  const r=$("#fRecurso").value, R=T.get(r);
-  $("#fDenom").innerHTML = R ? [...R.hijos.keys()].sort((a,b)=>a.localeCompare(b,"es")).map(d=>`<option>${esc(d)}</option>`).join("") : `<option value="">—</option>`;
-}
+function refresh(){ drawAsig(); drawCtrl(); drawMov(); drawResto(); fillDatalists(); avisoDisp(); }
 
 function exportJSON(){
-  const blob=new Blob([JSON.stringify({app:"gav-tracker",exported:new Date().toISOString(),state:ST},null,1)],{type:"application/json"});
-  dl(blob,`seguimiento_gavs_${new Date().toISOString().slice(0,10)}.json`);
+  dl(new Blob([JSON.stringify({app:"gav-tracker",v:2,exported:new Date().toISOString(),state:ST},null,1)],{type:"application/json"}),
+     `seguimiento_gavs_${new Date().toISOString().slice(0,10)}.json`);
 }
 function exportCSV(){
-  const ms=S().months, p=plan(), lines=[];
-  lines.push(["Recurso","Presupuesto USD","Plan USD","Comprometido USD","Ejecutado USD","Disponible USD",...ms.map(mLab)].join(";"));
-  for(const r of recursos()){
-    const a=A.byR[r]||{e:[],c:[]}, e=sum(a.e||[]), c=sum(a.c||[]);
-    lines.push([r,pptoR(r).toFixed(2),planR(r).toFixed(2),c.toFixed(2),e.toFixed(2),(pptoR(r)-e-c).toFixed(2),...p[r].map(v=>v.toFixed(2))].join(";"));
-  }
-  lines.push("");
-  lines.push(["Fecha","Mes","Recurso","Denom. clase de coste","Concepto","Doc","Estado","Monto origen","Moneda","USD","Origen"].join(";"));
-  for(const m of movs()) lines.push([m.fecha,m.mes,m.recurso,m.denom,String(m.concepto||"").replace(/;/g,","),m.doc,m.estado,m.monto.toFixed(2),m.moneda,m.usd.toFixed(2),m.origen].join(";"));
-  dl(new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8"}),`seguimiento_gavs_${ST.season}.csv`);
+  const L=[];
+  L.push("PARTIDAS ASIGNADAS");
+  L.push(["Recurso","Mes","Denominación","Texto de cabecera","Clase de coste","Denom. clase de coste","Monto USD"].join(";"));
+  for(const p of ST.parts) L.push([p.recurso,mLab(p.mi),cs(p.denominacion),cs(p.texto),p.claseCoste,cs(p.denomClaseCoste),(+p.monto||0).toFixed(2)].join(";"));
+  L.push("","MOVIMIENTOS");
+  L.push(["Fecha","Mes","Recurso","Clase de coste","Denominación","Texto de cabecera","Doc","Estado","Monto origen","Moneda","USD","Origen"].join(";"));
+  for(const m of ST.movs) L.push([m.fecha,mLab(m.mi),m.recurso,cs(m.denomClaseCoste),cs(m.denominacion),cs(m.texto),m.doc,m.estado,(+m.monto||0).toFixed(2),m.moneda,m.usd.toFixed(2),m.origen].join(";"));
+  L.push("","RESUMEN POR RECURSO");
+  L.push(["Recurso","Tope","Asignado","Comprometido","Ejecutado","Disponible"].join(";"));
+  for(const r of FOCO){ const {e,c}=ejecR(r); L.push([r,tope(r).toFixed(2),asigR(r).toFixed(2),c.toFixed(2),e.toFixed(2),(tope(r)-e-c).toFixed(2)].join(";")); }
+  dl(new Blob(["﻿"+L.join("\n")],{type:"text/csv;charset=utf-8"}),"seguimiento_gavs_T2627.csv");
 }
+const cs=s=>String(s??"").replace(/;/g,",");
 function dl(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); }
 
 /* ---- eventos ---- */
@@ -788,17 +907,14 @@ $$(".tab").forEach(t=>t.onclick=()=>{
   $$(".tab").forEach(x=>x.setAttribute("aria-selected", x===t));
   $$(".view").forEach(v=>v.classList.toggle("on", v.id==="v-"+t.dataset.v));
 });
-$("#selSeason").onchange=e=>{ ST.season=e.target.value; save(); T=tree(); fillSelects(); refresh(); };
-$("#ckAcum").onchange=drawCtrl;
-$("#bExpAll").onclick=()=>{ for(const r of recursos()){ ST.open[r]=true; for(const d of T.get(r).hijos.keys()) ST.open[r+"§"+d]=true; } save(); drawCtrl(); };
+$("#bExpAll").onclick=()=>{ for(const r of FOCO){ ST.open[r]=true;
+  for(const p of ST.parts.filter(x=>x.recurso===r)) if(ST.g[0]) ST.open[r+"§"+String(p[ST.g[0]]||"(sin dato)")]=true; }
+  save(); drawCtrl(); };
 $("#bColAll").onclick=()=>{ ST.open={}; save(); drawCtrl(); };
-$("#bPullSaldo").onclick=pullSaldo;
-$("#bResetPlan").onclick=()=>{ if(confirm("¿Volver al reparto mensual original del presupuesto?")){ delete ST.plan[ST.season]; save(); refresh(); toast("Plan restaurado"); } };
-$("#fRecurso").onchange=()=>{ fillDenom(); avisoDisp(); };
+$("#fRecurso").onchange=()=>{ fillClases(); avisoDisp(); };
 $("#bAdd").onclick=addMov;
-["fConcepto","fMonto","fDoc"].forEach(id=>$("#"+id).addEventListener("keydown",e=>{ if(e.key==="Enter") addMov(); }));
+["fDenom","fTexto","fMonto","fDoc"].forEach(id=>$("#"+id).addEventListener("keydown",e=>{ if(e.key==="Enter") addMov(); }));
 ["fltEstado","fltRecurso","fltTxt"].forEach(id=>$("#"+id).addEventListener("input",drawMov));
-$("#fltDet").oninput=drawDet;
 $("#bPaste").onclick=()=>{ $("#pasteMsg").innerHTML=""; $("#mPaste").classList.add("on"); $("#taPaste").focus(); };
 $("#bPasteCancel").onclick=()=>$("#mPaste").classList.remove("on");
 $("#bPasteOk").onclick=importSAP;
@@ -807,11 +923,12 @@ $("#bExport").onclick=exportJSON;
 $("#bCsv").onclick=exportCSV;
 $("#bImport").onclick=()=>$("#fileIn").click();
 $("#fileIn").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader();
-  rd.onload=()=>{ try{ const j=JSON.parse(rd.result); const s=j.state||j;
-    if(!s||!Array.isArray(s.movs)) throw 0; ST=s; ST.v=1; save(); T=tree(); fillSelects(); refresh(); toast("Respaldo restaurado");
+  rd.onload=()=>{ try{ const j=JSON.parse(rd.result), s=j.state||j;
+    if(!s||!Array.isArray(s.movs)||!Array.isArray(s.parts)) throw 0;
+    ST={...s, v:2, sel:[]}; save(); refresh(); toast("Respaldo restaurado");
   }catch(err){ toast("Archivo no válido",1); } }; rd.readAsText(f); e.target.value=""; };
-$("#bReset").onclick=()=>{ if(confirm("Borra el plan reprogramado y todos los movimientos cargados. ¿Seguro?")){
-  ST={v:1,season:ST.season,plan:{},movs:[],open:{},theme:ST.theme}; save(); refresh(); toast("Todo limpio"); } };
+$("#bReset").onclick=()=>{ if(!confirm("Vuelve a las partidas originales del presupuesto y borra todos los movimientos cargados. ¿Seguro?")) return;
+  ST={v:2, parts:structuredClone(BASE.parts), movs:[], open:{}, g:ST.g, sel:[], theme:ST.theme}; save(); refresh(); toast("Todo restaurado"); };
 $("#bTheme").onclick=()=>{ const cur=document.documentElement.getAttribute("data-theme");
   const next = cur==="dark" ? "light" : cur==="light" ? null : "dark";
   next ? document.documentElement.setAttribute("data-theme",next) : document.documentElement.removeAttribute("data-theme");
@@ -819,7 +936,21 @@ $("#bTheme").onclick=()=>{ const cur=document.documentElement.getAttribute("data
 if(ST.theme) document.documentElement.setAttribute("data-theme",ST.theme);
 addEventListener("scroll",hideTip,{passive:true});
 
-fillSelects(); refresh();
+/* ---- arranque ---- */
+(function init(){
+  $("#hSub").textContent=`${BASE.header.entidad} · ${BASE.header.gerencia} · ${BASE.season.label} · `+
+    `Tope gestionado USD ${fmt0(BASE.totalFoco)} de ${fmt0(BASE.totalPpto)} · control en USD`;
+  $("#fRecurso").innerHTML=FOCO.map(r=>`<option>${esc(r)}</option>`).join("");
+  $("#fltRecurso").innerHTML=`<option value="">Todos los recursos</option>`+FOCO.map(r=>`<option>${esc(r)}</option>`).join("");
+  const opt=sel=>GROUPS.map(g=>`<option value="${g.k}" ${g.k===sel?"selected":""}>${esc(g.lab)}</option>`).join("");
+  $("#g1").innerHTML=opt(ST.g[0]); $("#g2").innerHTML=opt(ST.g[1]);
+  $("#g1").onchange=()=>{ ST.g[0]=$("#g1").value; ST.open={}; save(); drawCtrl(); };
+  $("#g2").onchange=()=>{ ST.g[1]=$("#g2").value; ST.open={}; save(); drawCtrl(); };
+  fillClases();
+  const hoy=new Date().toISOString().slice(0,10);
+  $("#fFecha").value = MONTHS.includes(hoy.slice(0,4)+"_"+hoy.slice(5,7)) ? hoy : MONTHS[CUR()].replace("_","-")+"-01";
+  refresh();
+})();
 </script>
 </body>
 </html>
