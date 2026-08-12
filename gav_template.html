@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento GAVs — Exportaciones</title>
+<style>
+:root{
+  color-scheme: light;
+  --surface-1:#fcfcfb; --plane:#f9f9f7; --surface-2:#ffffff;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-ink:#006300; --crit-ink:#b02a2a;
+  --wash:rgba(42,120,214,.07);
+  --radius:10px;
+  --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --surface-1:#1a1a19; --plane:#0d0d0d; --surface-2:#232322;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --good-ink:#0ca30c; --crit-ink:#e66767;
+    --wash:rgba(57,135,229,.12);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-1:#1a1a19; --plane:#0d0d0d; --surface-2:#232322;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good-ink:#0ca30c; --crit-ink:#e66767;
+  --wash:rgba(57,135,229,.12);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1400px;margin:0 auto;padding:18px 18px 64px}
+
+/* ---------- topbar ---------- */
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.top h1{font-size:19px}
+.sub{color:var(--ink-2);font-size:12.5px;margin-top:3px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;cursor:pointer;font-size:13px;white-space:nowrap}
+.btn:hover{background:var(--wash)}
+.btn.primary{background:var(--s1);border-color:transparent;color:#fff;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 8px;font-size:12px}
+select,input[type=text],input[type=number],input[type=date],textarea{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:13px;max-width:100%}
+textarea{width:100%;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin:6px 0 16px;overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 14px;cursor:pointer;color:var(--ink-2);font-size:13.5px;white-space:nowrap}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--s1);font-weight:640}
+.view{display:none}
+.view.on{display:block}
+
+/* ---------- cards / kpis ---------- */
+.card{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px}
+.kpi .lab{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kpi .val{font-size:23px;font-weight:670;margin-top:3px;letter-spacing:-.02em}
+.kpi .foot{font-size:11.5px;color:var(--ink-2);margin-top:2px}
+.kpi.accent{border-left:3px solid var(--s1)}
+.kpi.ok{border-left:3px solid var(--good)}
+.kpi.bad{border-left:3px solid var(--crit)}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-1)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--grid)}
+th{background:var(--surface-2);color:var(--ink-2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:2}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface-1);z-index:1}
+th:first-child{z-index:3;background:var(--surface-2)}
+tbody tr:hover td{background:var(--wash)}
+tbody tr:hover td:first-child{background:var(--wash)}
+td.num,th.num{font-variant-numeric:tabular-nums}
+tr.lvl0>td:first-child{font-weight:640}
+tr.lvl1>td:first-child{padding-left:30px;color:var(--ink-2)}
+tr.lvl2>td:first-child{padding-left:52px;color:var(--muted);font-size:12.5px}
+tr.tot td{font-weight:680;border-top:2px solid var(--axis);background:var(--surface-2)}
+tr.tot td:first-child{background:var(--surface-2)}
+.tw{cursor:pointer;display:inline-block;width:14px;color:var(--muted);user-select:none}
+.pos{color:var(--good-ink)} .neg{color:var(--crit-ink)}
+.dim{color:var(--muted)}
+
+/* ---------- semáforo ---------- */
+.sem{display:inline-flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.dot.good{background:var(--good)}
+.dot.warn{background:var(--warn);border-radius:2px;transform:rotate(45deg);width:10px;height:10px}
+.dot.crit{background:var(--crit);border-radius:2px;transform:rotate(45deg);width:10px;height:10px}
+
+/* ---------- barra de consumo ---------- */
+.bar{position:relative;height:8px;border-radius:4px;background:var(--grid);overflow:hidden;min-width:70px}
+.bar>i{position:absolute;left:0;top:0;bottom:0;display:block}
+.bar>i.e{background:var(--s2)}
+.bar>i.c{background:var(--s3);opacity:.75}
+
+/* ---------- grilla plan ---------- */
+.cellin{width:54px;text-align:right;border:1px solid transparent;background:transparent;border-radius:5px;padding:3px 5px;font-variant-numeric:tabular-nums;font-size:12.5px}
+.cellin:hover{border-color:var(--border)}
+.cellin:focus{outline:2px solid var(--s1);outline-offset:-1px;background:var(--surface-2)}
+.cellin.past{color:var(--muted)}
+td.over{background:rgba(208,59,59,.14)!important}
+td.mcur{box-shadow:inset 2px 0 0 var(--s1)}
+
+#tPlan th,#tPlan td{padding:6px 6px}
+#tPlan td:first-child,#tPlan th:first-child{padding-left:10px}
+
+/* ---------- forms ---------- */
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.hint{font-size:12px;color:var(--ink-2)}
+.sep{height:1px;background:var(--grid);margin:14px 0}
+
+/* ---------- chart ---------- */
+.chartcard{background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px 8px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin-bottom:16px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:2px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:10px;height:10px;border-radius:3px;flex:none}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.tip{position:fixed;pointer-events:none;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.16);z-index:99;opacity:0;transition:opacity .1s;max-width:260px}
+.tip.on{opacity:1}
+.tip b{display:block;margin-bottom:3px}
+.tip i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+
+/* ---------- toast / modal ---------- */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:var(--plane);
+  padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;transition:.18s;z-index:200;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#toast.bad{background:var(--crit);color:#fff}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:18px;z-index:150}
+.modal.on{display:flex}
+.modal>div{background:var(--surface-1);border-radius:14px;padding:18px;max-width:760px;width:100%;max-height:88vh;overflow:auto;border:1px solid var(--border)}
+.badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:var(--wash);color:var(--ink-2);border:1px solid var(--border)}
+.badge.e{background:rgba(235,104,52,.14)}
+.badge.c{background:rgba(27,175,122,.16)}
+.err{color:var(--crit-ink)}
+@media (max-width:640px){ .kpi .val{font-size:19px} .wrap{padding:12px 10px 60px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <h1>Seguimiento de GAVs · <span id="hGer">Exportaciones</span></h1>
+      <div class="sub" id="hSub"></div>
+    </div>
+    <div class="toolbar">
+      <select id="selSeason" title="Temporada"></select>
+      <button class="btn" id="bExport">⭳ Respaldo</button>
+      <button class="btn" id="bImport">⭱ Restaurar</button>
+      <button class="btn" id="bCsv">⭳ CSV</button>
+      <button class="btn ghost" id="bTheme" title="Tema">◐</button>
+      <button class="btn ghost" id="bReset" title="Borrar todo lo cargado">⟲</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-v="resumen" aria-selected="true">Resumen y control</button>
+    <button class="tab" role="tab" data-v="plan" aria-selected="false">Plan mensual (reprogramar)</button>
+    <button class="tab" role="tab" data-v="ejec" aria-selected="false">Ejecución</button>
+    <button class="tab" role="tab" data-v="detalle" aria-selected="false">Detalle del presupuesto</button>
+  </div>
+
+  <!-- ============ RESUMEN ============ -->
+  <section class="view on" id="v-resumen">
+    <div class="kpis" id="kpis"></div>
+    <div class="charts">
+      <div class="chartcard">
+        <h3 style="font-size:14px">Plan vs. ejecución por mes</h3>
+        <div class="sub" style="margin-bottom:6px">USD · el plan es el presupuesto ya reprogramado</div>
+        <div id="chMes"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--s1)"></i>Plan</span>
+          <span><i class="sw" style="background:var(--s2)"></i>Ejecutado</span>
+          <span><i class="sw" style="background:var(--s3)"></i>Comprometido</span>
+        </div>
+      </div>
+      <div class="chartcard">
+        <h3 style="font-size:14px">Consumo acumulado vs. tope</h3>
+        <div class="sub" style="margin-bottom:6px">USD acumulado · la línea gris es el tope de la temporada</div>
+        <div id="chAcum"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--s1)"></i>Plan acum.</span>
+          <span><i class="sw" style="background:var(--s2)"></i>Ejec.+Comp. acum.</span>
+          <span><i class="sw" style="background:var(--axis)"></i>Tope</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-bottom:8px;justify-content:space-between">
+      <h2 style="font-size:15px">Control por Recurso / Denom. clase de coste / Descripción</h2>
+      <div class="toolbar">
+        <label class="hint"><input type="checkbox" id="ckAcum"> Comparar solo hasta el mes en curso</label>
+        <button class="btn sm" id="bExpAll">Expandir todo</button>
+        <button class="btn sm" id="bColAll">Colapsar</button>
+      </div>
+    </div>
+    <div class="tblwrap"><table id="tCtrl"></table></div>
+    <p class="hint" style="margin-top:8px">
+      Regla dura: el tope es por <b>Recurso</b>. Los meses se pueden mover libremente dentro del recurso,
+      pero la suma de la temporada no puede superar su presupuesto y no hay traspasos entre recursos.
+    </p>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section class="view" id="v-plan">
+    <div class="card" style="margin-bottom:12px">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <h2 style="font-size:15px">Reprogramación de meses</h2>
+          <div class="hint">Edita cualquier celda. El total del recurso no puede pasar su presupuesto: si te excedes, se recorta al máximo disponible y te aviso.</div>
+        </div>
+        <div class="toolbar">
+          <select id="selMoveTo" title="Mes destino"></select>
+          <button class="btn" id="bPullSaldo">Traer saldo vencido al mes destino</button>
+          <button class="btn ghost" id="bResetPlan">Volver al plan original</button>
+        </div>
+      </div>
+    </div>
+    <div class="tblwrap"><table id="tPlan"></table></div>
+    <p class="hint" style="margin-top:8px">
+      «Saldo vencido» = plan de meses ya cerrados que no llegó a ejecutarse ni comprometerse. Se mueve al mes destino sin tocar el tope anual.
+    </p>
+  </section>
+
+  <!-- ============ EJECUCION ============ -->
+  <section class="view" id="v-ejec">
+    <div class="card" style="margin-bottom:12px">
+      <h2 style="font-size:15px;margin-bottom:8px">Carga rápida</h2>
+      <div class="row">
+        <div class="f"><label>Fecha</label><input type="date" id="fFecha"></div>
+        <div class="f"><label>Recurso</label><select id="fRecurso" style="min-width:190px"></select></div>
+        <div class="f"><label>Denom. clase de coste</label><select id="fDenom" style="min-width:190px"></select></div>
+        <div class="f" style="flex:1;min-width:180px"><label>Concepto / detalle</label><input type="text" id="fConcepto" placeholder="Ej. Vuelo Lima–Trujillo, feria Fruit Attraction…" style="width:100%"></div>
+        <div class="f"><label>Monto</label><input type="number" id="fMonto" step="0.01" style="width:110px"></div>
+        <div class="f"><label>Moneda</label><select id="fMoneda"><option>USD</option><option>PEN</option></select></div>
+        <div class="f"><label>Estado</label><select id="fEstado"><option value="comprometido">Comprometido</option><option value="ejecutado">Ejecutado</option></select></div>
+        <div class="f"><label>Doc. / OC</label><input type="text" id="fDoc" style="width:110px"></div>
+        <button class="btn primary" id="bAdd">Agregar</button>
+        <button class="btn" id="bPaste">⭱ Importar de SAP</button>
+      </div>
+      <div class="hint" id="fAviso" style="margin-top:8px"></div>
+    </div>
+
+    <div class="row" style="margin-bottom:8px;justify-content:space-between">
+      <h2 style="font-size:15px">Movimientos cargados (<span id="nMov">0</span>)</h2>
+      <div class="toolbar">
+        <select id="fltEstado"><option value="">Todos los estados</option><option value="comprometido">Comprometido</option><option value="ejecutado">Ejecutado</option></select>
+        <select id="fltRecurso"><option value="">Todos los recursos</option></select>
+        <input type="text" id="fltTxt" placeholder="Buscar…">
+      </div>
+    </div>
+    <div class="tblwrap"><table id="tMov"></table></div>
+  </section>
+
+  <!-- ============ DETALLE ============ -->
+  <section class="view" id="v-detalle">
+    <div class="row" style="margin-bottom:8px;justify-content:space-between">
+      <h2 style="font-size:15px">Líneas del presupuesto aprobado</h2>
+      <input type="text" id="fltDet" placeholder="Buscar recurso, cuenta, material…" style="min-width:240px">
+    </div>
+    <div class="tblwrap"><table id="tDet"></table></div>
+    <p class="hint" style="margin-top:8px">Baseline congelado del formato F01CGPPTO. Los montos se convierten a USD con el TC presupuestado de cada mes.</p>
+  </section>
+</div>
+
+<div id="toast"></div>
+<div class="tip" id="tip"></div>
+
+<!-- modal importar SAP -->
+<div class="modal" id="mPaste"><div>
+  <h2 style="font-size:16px">Importar extracción de SAP (OPEX)</h2>
+  <p class="hint">Copia desde Excel el rango <b>con la fila de encabezados</b> y pégalo acá. Se reconocen las columnas del layout <code>BD_Opex</code>:
+  <i>Centro de coste · Ejercicio · Período · Clase de coste · Denom.clase de coste · Descrip.clases coste · Val/Mon.so.CO · Importe Origen · Moneda Origen · Denominación · Nº de documento</i>.</p>
+  <textarea id="taPaste" rows="10" placeholder="Pega aquí…"></textarea>
+  <div class="row" style="margin-top:10px;justify-content:space-between">
+    <label class="hint"><input type="checkbox" id="ckReplace" checked> Reemplazar lo importado antes desde SAP (evita duplicar)</label>
+    <div class="toolbar">
+      <button class="btn ghost" id="bPasteCancel">Cancelar</button>
+      <button class="btn primary" id="bPasteOk">Importar</button>
+    </div>
+  </div>
+  <div id="pasteMsg" class="hint" style="margin-top:8px"></div>
+</div></div>
+
+<input type="file" id="fileIn" accept="application/json" hidden>
+
+<script>
+"use strict";
+const BASE = /*__BASELINE__*/;
+const KEY  = "gav-tracker-v1";
+const MES  = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+
+/* ---------------- estado ---------------- */
+let ST = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.v===1) return s; }catch(e){}
+  return {v:1, season:BASE.seasons[0].id, plan:{}, movs:[], open:{}, theme:null};
+}
+const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(ST)); }catch(e){ toast("No se pudo guardar en este navegador",1); } };
+
+const S    = ()=>BASE.seasons.find(s=>s.id===ST.season) || BASE.seasons[0];
+const NM   = ()=>S().months.length;
+const fmt  = (n,d=0)=>(n==null||isNaN(n))?"–":n.toLocaleString("es-PE",{minimumFractionDigits:d,maximumFractionDigits:d});
+const EPS  = 0.5;                       // tolerancia de redondeo: medio dólar
+const fmt0 = n=>Math.abs(n)<EPS?"–":fmt(n,0);
+const mLab = k=>{const [y,m]=k.split("_");return MES[+m-1]+" "+y.slice(2);};
+const esc  = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* mes en curso dentro de la temporada (-1 si la temporada no ha empezado, NM si ya cerró) */
+function curIdx(){
+  const d=new Date(), k=d.getFullYear()+"_"+String(d.getMonth()+1).padStart(2,"0");
+  const ms=S().months, i=ms.indexOf(k);
+  if(i>=0) return i;
+  return k < ms[0] ? -1 : ms.length;
+}
+
+/* ---------------- agregación del baseline ---------------- */
+function tree(){
+  const t = new Map();          // recurso -> {ppto, mes[], hijos:Map(denom -> {ppto,mes,hijos:Map(descrip)})}
+  const n = NM();
+  const mk = ()=>({ppto:0, mes:Array(n).fill(0), hijos:new Map()});
+  for(const l of S().lines){
+    const r = t.get(l.recurso) || mk(); t.set(l.recurso, r);
+    const d = r.hijos.get(l.denomClaseCoste||"(sin denominación)") || mk();
+    r.hijos.set(l.denomClaseCoste||"(sin denominación)", d);
+    const x = d.hijos.get(l.descripClaseCoste||"(sin descripción)") || mk();
+    d.hijos.set(l.descripClaseCoste||"(sin descripción)", x);
+    for(let i=0;i<n;i++){ const v=l.usd[i]||0; r.mes[i]+=v; d.mes[i]+=v; x.mes[i]+=v; r.ppto+=v; d.ppto+=v; x.ppto+=v; }
+  }
+  return t;
+}
+let T = tree();
+const recursos = ()=>[...T.keys()].sort((a,b)=>a.localeCompare(b,"es"));
+const pptoR    = r=>T.get(r)?.ppto || 0;
+const TOPE     = ()=>[...T.values()].reduce((a,x)=>a+x.ppto,0);
+
+/* mapa denom.clase de coste -> recurso (para clasificar la extracción de SAP) */
+const MAPDEN = (()=>{ const m={};
+  for(const s of BASE.seasons) for(const l of s.lines){
+    if(l.denomClaseCoste) m[norm(l.denomClaseCoste)] = l.recurso;
+    if(l.descripClaseCoste) m[norm(l.descripClaseCoste)] ??= l.recurso;
+    if(l.claseCoste) m["cc:"+String(l.claseCoste).trim()] = l.recurso;
+  } return m; })();
+function norm(s){ return String(s??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim(); }
+
+/* ---------------- plan (reprogramación) ---------------- */
+function plan(){
+  const p = ST.plan[ST.season] ||= {};
+  for(const r of recursos()) if(!Array.isArray(p[r]) || p[r].length!==NM()) p[r] = T.get(r).mes.slice();
+  return p;
+}
+const planR = r=>plan()[r].reduce((a,b)=>a+b,0);
+
+/* ---------------- ejecución ---------------- */
+const movs = ()=>ST.movs.filter(m=>m.season===ST.season);
+function agg(){
+  const n=NM(), ms=S().months, z=()=>({e:Array(n).fill(0), c:Array(n).fill(0)});
+  const byR={}, byD={}, byX={};
+  for(const m of movs()){
+    const i = ms.indexOf(m.mes); if(i<0) continue;
+    const k = m.estado==="ejecutado" ? "e" : "c";
+    (byR[m.recurso] ||= z())[k][i] += m.usd;
+    (byD[m.recurso+"§"+(m.denom||"")] ||= z())[k][i] += m.usd;
+    (byX[m.recurso+"§"+(m.denom||"")+"§"+(m.descrip||"")] ||= z())[k][i] += m.usd;
+  }
+  return {byR, byD, byX};
+}
+let A = agg();
+const sum = a=>a.reduce((x,y)=>x+y,0);
+const upto = (a,i)=>a.slice(0,i+1).reduce((x,y)=>x+y,0);
+
+/* semáforo: rojo si consume más que el ppto, ámbar desde 90 %, verde bajo eso */
+function sem(cons, ppto){
+  if(ppto<=0) return cons>EPS ? ["crit","Sin presupuesto"] : ["good","—"];
+  const p = cons/ppto;
+  if(cons>ppto+EPS) return ["crit","Excedido "+fmt((p-1)*100,0)+"%"];
+  if(p>=0.9)        return ["warn","Al "+fmt(Math.min(p,1)*100,0)+"%"];
+  return ["good", fmt(p*100,0)+"%"];
+}
+const semHTML=(c,ppto)=>{const[k,t]=sem(c,ppto);return `<span class="sem"><i class="dot ${k}"></i>${esc(t)}</span>`;};
+
+/* ================= RESUMEN ================= */
+function drawKpis(){
+  const tope=TOPE(), pl=recursos().reduce((a,r)=>a+planR(r),0);
+  let e=0,c=0; for(const m of movs()) (m.estado==="ejecutado"?(e+=m.usd):(c+=m.usd));
+  const disp=tope-e-c, over=recursos().filter(r=>{const a=A.byR[r];return a && (sum(a.e)+sum(a.c))>pptoR(r)+EPS;});
+  const i=curIdx(), planHoy = i<0?0 : recursos().reduce((a,r)=>a+upto(plan()[r], Math.min(i,NM()-1)),0);
+  const desv = planHoy-(e+c);
+  $("#kpis").innerHTML = [
+    kpi("Presupuesto temporada","accent","$"+fmt0(tope), S().label+" · tope duro"),
+    kpi("Plan reprogramado", pl>tope+EPS?"bad":"", "$"+fmt0(pl), pl>tope+EPS?"⚠ supera el tope":fmt((pl/tope)*100,1)+"% del tope repartido"),
+    kpi("Ejecutado","","$"+fmt0(e), fmt(tope?e/tope*100:0,1)+"% del presupuesto"),
+    kpi("Comprometido","","$"+fmt0(c), "pedido, aún no contabilizado"),
+    kpi("Disponible", disp<-EPS?"bad":"ok", "$"+fmt0(disp), disp<-EPS?"⚠ sobregiro":"queda por gastar"),
+    kpi("Avance vs. plan a la fecha", desv<-EPS?"bad":"", "$"+fmt0(Math.abs(desv)), Math.abs(desv)<EPS?"en línea con el plan":desv<0?"por encima del plan":"por debajo del plan"),
+    kpi("Recursos excedidos", over.length?"bad":"ok", String(over.length), over.length?over.slice(0,2).join(", ")+(over.length>2?"…":""):"ninguno")
+  ].join("");
+}
+const kpi=(l,cls,v,f)=>`<div class="kpi ${cls}"><div class="lab">${esc(l)}</div><div class="val">${v}</div><div class="foot">${esc(f)}</div></div>`;
+
+function drawCtrl(){
+  const hastaHoy=$("#ckAcum").checked, i=Math.min(Math.max(curIdx(),0),NM()-1);
+  const cut = a => hastaHoy ? upto(a,i) : sum(a);
+  const head = `<thead><tr>
+    <th>Recurso / Denom. clase de coste / Descripción</th>
+    <th class="num">Ppto</th><th class="num">Plan</th><th class="num">Comprometido</th>
+    <th class="num">Ejecutado</th><th class="num">Ejec.+Comp.</th><th class="num">Disponible</th>
+    <th>Consumo</th><th>Estado</th></tr></thead>`;
+  let body="", tp=0,tpl=0,tc=0,te=0;
+  for(const r of recursos()){
+    const R=T.get(r), a=A.byR[r]||{e:[],c:[]};
+    const p = hastaHoy ? upto(R.mes,i) : R.ppto;
+    const pl= hastaHoy ? upto(plan()[r],i) : planR(r);
+    const ce=cut(a.e||[]), cc=cut(a.c||[]);
+    tp+=p; tpl+=pl; tc+=cc; te+=ce;
+    body += rowHTML(0,r,r,p,pl,cc,ce,R.hijos.size>0);
+    if(ST.open[r]){
+      for(const [d,D] of [...R.hijos].sort((x,y)=>x[0].localeCompare(y[0],"es"))){
+        const ad=A.byD[r+"§"+d]||{e:[],c:[]};
+        const kd=r+"§"+d;
+        body += rowHTML(1,kd,d, hastaHoy?upto(D.mes,i):D.ppto, hastaHoy?upto(D.mes,i):D.ppto, cut(ad.c||[]), cut(ad.e||[]), D.hijos.size>1);
+        if(ST.open[kd]) for(const [x,X] of [...D.hijos].sort((p,q)=>p[0].localeCompare(q[0],"es"))){
+          const ax=A.byX[r+"§"+d+"§"+x]||{e:[],c:[]};
+          body += rowHTML(2,kd+"§"+x,x, hastaHoy?upto(X.mes,i):X.ppto, hastaHoy?upto(X.mes,i):X.ppto, cut(ax.c||[]), cut(ax.e||[]), false);
+        }
+      }
+    }
+  }
+  /* movimientos que no calzan con ningún recurso del presupuesto */
+  const huerf={}; for(const m of movs()) if(!T.has(m.recurso)) (huerf[m.recurso] ||= {e:0,c:0})[m.estado==="ejecutado"?"e":"c"] += m.usd;
+  for(const [r,v] of Object.entries(huerf)){ te+=v.e; tc+=v.c; body += rowHTML(0,"@"+r,r+" (sin presupuesto)",0,0,v.c,v.e,false); }
+
+  const tt=tc+te;
+  body += `<tr class="tot"><td>Total general</td><td class="num">${fmt0(tp)}</td><td class="num">${fmt0(tpl)}</td>
+    <td class="num">${fmt0(tc)}</td><td class="num">${fmt0(te)}</td><td class="num">${fmt0(tt)}</td>
+    <td class="num ${tp-tt<-EPS?"neg":"pos"}">${fmt0(tp-tt)}</td><td>${barHTML(te,tc,tp)}</td><td>${semHTML(tt,tp)}</td></tr>`;
+  $("#tCtrl").innerHTML = head+"<tbody>"+body+"</tbody>";
+  $$("#tCtrl .tw").forEach(el=>el.onclick=()=>{ ST.open[el.dataset.k]=!ST.open[el.dataset.k]; save(); drawCtrl(); });
+}
+function rowHTML(lvl,key,label,ppto,pl,c,e,exp){
+  const t=c+e, d=ppto-t;
+  const tw = exp?`<span class="tw" data-k="${esc(key)}">${ST.open[key]?"⊟":"⊞"}</span>`:`<span class="tw"></span>`;
+  return `<tr class="lvl${lvl}"><td>${tw}${esc(label)}</td>
+    <td class="num">${fmt0(ppto)}</td><td class="num ${lvl?"dim":""}">${fmt0(pl)}</td>
+    <td class="num">${fmt0(c)}</td><td class="num">${fmt0(e)}</td><td class="num">${fmt0(t)}</td>
+    <td class="num ${d<-EPS?"neg":""}">${fmt0(d)}</td>
+    <td>${barHTML(e,c,ppto)}</td><td>${lvl?"":semHTML(t,ppto)}</td></tr>`;
+}
+function barHTML(e,c,p){
+  if(p<=0) return `<div class="bar"></div>`;
+  const pe=Math.min(100,e/p*100), pc=Math.min(100-pe,c/p*100);
+  return `<div class="bar"><i class="c" style="left:${pe}%;width:${pc}%"></i><i class="e" style="width:${pe}%"></i></div>`;
+}
+
+/* ================= CHARTS ================= */
+const TIP=$("#tip");
+function showTip(ev,html){ TIP.innerHTML=html; TIP.classList.add("on");
+  const r=TIP.getBoundingClientRect();
+  TIP.style.left=Math.min(ev.clientX+14, innerWidth-r.width-8)+"px";
+  TIP.style.top=Math.max(8, ev.clientY-r.height-10)+"px"; }
+const hideTip=()=>TIP.classList.remove("on");
+
+function drawCharts(){
+  const n=NM(), ms=S().months, p=plan();
+  const P=Array(n).fill(0), E=Array(n).fill(0), C=Array(n).fill(0);
+  for(const r of recursos()) for(let i=0;i<n;i++) P[i]+=p[r][i];
+  for(const m of movs()){ const i=ms.indexOf(m.mes); if(i<0)continue; (m.estado==="ejecutado"?E:C)[i]+=m.usd; }
+  barChart($("#chMes"), ms, P, E, C);
+  lineChart($("#chAcum"), ms, P, E.map((v,i)=>v+C[i]), TOPE());
+}
+
+function barChart(host, ms, P, E, C){
+  const W=640,H=230,L=52,R=8,Tp=10,B=30, iw=W-L-R, ih=H-Tp-B;
+  const max=Math.max(1,...P,...E.map((v,i)=>v+C[i]))*1.12;
+  const y=v=>Tp+ih-(v/max)*ih, bw=iw/ms.length;
+  let g="";
+  for(let t=0;t<=4;t++){ const v=max*t/4, yy=y(v);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>
+        <text x="${L-7}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt0(v)}</text>`; }
+  let b="";
+  ms.forEach((m,i)=>{
+    const x0=L+i*bw, w=(bw-8)/2;
+    const hP=Math.max(0,ih-(y(P[i])-Tp)), hE=Math.max(0,ih-(y(E[i])-Tp)), hC=Math.max(0,ih-(y(C[i])-Tp));
+    b+=`<rect x="${x0+2}" y="${y(P[i])}" width="${w}" height="${hP}" rx="4" fill="var(--s1)"/>`;
+    if(E[i]>0) b+=`<rect x="${x0+w+6}" y="${y(E[i])}" width="${w}" height="${hE}" rx="4" fill="var(--s2)"/>`;
+    if(C[i]>0) b+=`<rect x="${x0+w+6}" y="${y(E[i]+C[i])}" width="${w}" height="${Math.max(0,hC-2)}" rx="4" fill="var(--s3)"/>`;
+    b+=`<text x="${x0+bw/2}" y="${H-B+16}" text-anchor="middle" font-size="10" fill="var(--muted)">${MES[+m.split("_")[1]-1]}</text>`;
+    b+=`<rect class="hit" x="${x0}" y="${Tp}" width="${bw}" height="${ih}" fill="transparent" data-i="${i}"/>`;
+  });
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Plan y ejecución por mes">${g}
+    <line x1="${L}" x2="${W-R}" y1="${Tp+ih}" y2="${Tp+ih}" stroke="var(--axis)"/>${b}</svg>`;
+  $$(".hit",host).forEach(el=>{
+    const i=+el.dataset.i;
+    el.onmousemove=ev=>showTip(ev,`<b>${mLab(ms[i])}</b>
+      <div><i style="background:var(--s1)"></i>Plan $${fmt0(P[i])}</div>
+      <div><i style="background:var(--s2)"></i>Ejecutado $${fmt0(E[i])}</div>
+      <div><i style="background:var(--s3)"></i>Comprometido $${fmt0(C[i])}</div>`);
+    el.onmouseleave=hideTip;
+  });
+}
+
+function lineChart(host, ms, P, EC, tope){
+  const W=640,H=230,L=52,R=10,Tp=10,B=30, iw=W-L-R, ih=H-Tp-B;
+  const cum=a=>a.reduce((acc,v,i)=>(acc.push((acc[i-1]||0)+v),acc),[]);
+  const cp=cum(P), ce=cum(EC);
+  const max=Math.max(tope, ...cp, ...ce)*1.1||1;
+  const x=i=>L+(ms.length===1?iw/2:i*iw/(ms.length-1)), y=v=>Tp+ih-(v/max)*ih;
+  let g="";
+  for(let t=0;t<=4;t++){ const v=max*t/4, yy=y(v);
+    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>
+        <text x="${L-7}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmt0(v)}</text>`; }
+  const path=a=>a.map((v,i)=>(i?"L":"M")+x(i)+" "+y(v)).join(" ");
+  const i=curIdx();
+  let marks="", hits="";
+  ms.forEach((m,k)=>{
+    if(EC[k]>0||k<=i) marks+=`<circle cx="${x(k)}" cy="${y(ce[k])}" r="3.5" fill="var(--s2)" stroke="var(--surface-1)" stroke-width="2"/>`;
+    marks+=`<text x="${x(k)}" y="${H-B+16}" text-anchor="middle" font-size="10" fill="var(--muted)">${MES[+m.split("_")[1]-1]}</text>`;
+    hits+=`<rect class="hit2" x="${x(k)-iw/(ms.length*2)}" y="${Tp}" width="${iw/ms.length}" height="${ih}" fill="transparent" data-i="${k}"/>`;
+  });
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Consumo acumulado contra el tope">${g}
+    <line x1="${L}" x2="${W-R}" y1="${y(tope)}" y2="${y(tope)}" stroke="var(--axis)" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="${W-R}" y="${y(tope)-6}" text-anchor="end" font-size="10" fill="var(--ink-2)">Tope $${fmt0(tope)}</text>
+    <path d="${path(cp)}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
+    <path d="${path(ce)}" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="${L}" x2="${W-R}" y1="${Tp+ih}" y2="${Tp+ih}" stroke="var(--axis)"/>${marks}${hits}</svg>`;
+  $$(".hit2",host).forEach(el=>{
+    const k=+el.dataset.i;
+    el.onmousemove=ev=>showTip(ev,`<b>${mLab(ms[k])}</b>
+      <div><i style="background:var(--s1)"></i>Plan acum. $${fmt0(cp[k])}</div>
+      <div><i style="background:var(--s2)"></i>Ejec.+Comp. acum. $${fmt0(ce[k])}</div>
+      <div class="dim">Margen: $${fmt0(tope-ce[k])}</div>`);
+    el.onmouseleave=hideTip;
+  });
+}
+
+/* ================= PLAN MENSUAL ================= */
+function drawPlan(){
+  const ms=S().months, n=NM(), p=plan(), i=curIdx();
+  let h=`<thead><tr><th>Recurso</th><th class="num">Ppto</th>`;
+  ms.forEach((m,k)=>h+=`<th class="num" ${k===i?'style="color:var(--s1)"':""}>${MES[+m.split("_")[1]-1]}<br><span style="font-weight:400">${m.slice(2,4)}</span></th>`);
+  h+=`<th class="num">Plan</th><th class="num">Δ vs Ppto</th><th>Estado</th></tr></thead>`;
+  let b="";
+  for(const r of recursos()){
+    const ppto=pptoR(r), tot=planR(r), d=ppto-tot;
+    b+=`<tr class="lvl0"><td>${esc(r)}</td><td class="num">${fmt0(ppto)}</td>`;
+    for(let k=0;k<n;k++){
+      const a=A.byR[r], gastado=(a?((a.e[k]||0)+(a.c[k]||0)):0);
+      const over=gastado>p[r][k]+EPS;
+      b+=`<td class="num ${over?"over":""} ${k===i?"mcur":""}"><input class="cellin ${k<i?"past":""}" data-r="${esc(r)}" data-k="${k}" value="${p[r][k]?fmt(p[r][k],0):""}" placeholder="–"></td>`;
+    }
+    b+=`<td class="num"><b>${fmt0(tot)}</b></td><td class="num ${d<-EPS?"neg":d>EPS?"pos":""}">${fmt0(d)}</td>
+        <td>${d<-EPS?'<span class="sem"><i class="dot crit"></i>Excede el tope</span>':d>EPS?'<span class="sem"><i class="dot warn"></i>Sin asignar $'+fmt0(d)+'</span>':'<span class="sem"><i class="dot good"></i>Repartido</span>'}</td></tr>`;
+  }
+  const tp=TOPE(), tl=recursos().reduce((a,r)=>a+planR(r),0);
+  b+=`<tr class="tot"><td>Total</td><td class="num">${fmt0(tp)}</td>`;
+  for(let k=0;k<n;k++) b+=`<td class="num">${fmt0(recursos().reduce((a,r)=>a+p[r][k],0))}</td>`;
+  b+=`<td class="num">${fmt0(tl)}</td><td class="num ${tp-tl<-EPS?"neg":""}">${fmt0(tp-tl)}</td><td></td></tr>`;
+  $("#tPlan").innerHTML=h+"<tbody>"+b+"</tbody>";
+
+  $$("#tPlan .cellin").forEach(el=>{
+    el.onfocus=()=>{ const v=plan()[el.dataset.r][+el.dataset.k]; el.value=v?Math.round(v*100)/100:""; el.select(); };
+    el.onkeydown=ev=>{ if(ev.key==="Enter"){ el.blur(); } };
+    el.onblur=()=>{
+      const r=el.dataset.r, k=+el.dataset.k, pp=plan();
+      let v=parseFloat(String(el.value).replace(/[^\d.,-]/g,"").replace(/\.(?=\d{3}\b)/g,"").replace(",","."));
+      if(isNaN(v)||v<0) v=0;
+      const resto=pp[r].reduce((a,x,j)=>a+(j===k?0:x),0), max=pptoR(r)-resto;
+      if(v>max+EPS){ v=Math.max(0,max); toast(`Tope duro de «${r}»: máximo $${fmt0(max)} en ese mes. Se ajustó al disponible.`,1); }
+      pp[r][k]=v; save(); refresh();
+    };
+  });
+}
+
+/* traer a un mes destino el plan de meses cerrados que no se usó */
+function pullSaldo(){
+  const dest=+$("#selMoveTo").value, i=curIdx(), p=plan();
+  if(i<=0) return toast("No hay meses cerrados todavía",1);
+  if(dest<i) return toast("El mes destino debe ser el actual o uno futuro",1);
+  let mov=0, nR=0;
+  for(const r of recursos()){
+    const a=A.byR[r]; let libre=0;
+    for(let k=0;k<i;k++){
+      const usado=a?((a.e[k]||0)+(a.c[k]||0)):0;
+      const s=Math.max(0,p[r][k]-usado);
+      if(s>0.005){ libre+=s; p[r][k]-=s; }
+    }
+    if(libre>0.005){ p[r][dest]+=libre; mov+=libre; nR++; }
+  }
+  save(); refresh();
+  toast(mov>0.005?`Se movieron $${fmt0(mov)} de ${nR} recurso(s) a ${mLab(S().months[dest])}`:"No había saldo vencido por mover");
+}
+
+/* ================= EJECUCIÓN ================= */
+function drawMov(){
+  const fe=$("#fltEstado").value, fr=$("#fltRecurso").value, ft=norm($("#fltTxt").value);
+  const list=movs().filter(m=>(!fe||m.estado===fe)&&(!fr||m.recurso===fr)&&
+    (!ft||norm([m.concepto,m.recurso,m.denom,m.descrip,m.doc].join(" ")).includes(ft)))
+    .sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")||(b.id-a.id));
+  $("#nMov").textContent=movs().length;
+  let b="";
+  for(const m of list){
+    b+=`<tr><td>${esc(m.fecha||"")}</td><td>${esc(mLab(m.mes))}</td><td>${esc(m.recurso)}${T.has(m.recurso)?"":' <span class="err">⚠ fuera de ppto</span>'}</td>
+      <td>${esc(m.denom||"")}</td><td style="text-align:left;white-space:normal;max-width:280px">${esc(m.concepto||"")}</td>
+      <td>${esc(m.doc||"")}</td><td><span class="badge ${m.estado==="ejecutado"?"e":"c"}">${m.estado==="ejecutado"?"Ejecutado":"Comprometido"}</span></td>
+      <td class="num">${m.moneda==="PEN"?"S/ "+fmt(m.monto,2):""}</td><td class="num"><b>${fmt(m.usd,2)}</b></td>
+      <td>${m.origen==="sap"?'<span class="badge">SAP</span>':""}</td>
+      <td><button class="btn sm" data-tog="${m.id}">${m.estado==="ejecutado"?"↩ a comprom.":"✓ ejecutar"}</button>
+          <button class="btn sm" data-del="${m.id}">✕</button></td></tr>`;
+  }
+  $("#tMov").innerHTML=`<thead><tr><th>Fecha</th><th>Mes</th><th>Recurso</th><th>Denom. clase coste</th><th>Concepto</th>
+    <th>Doc.</th><th>Estado</th><th class="num">Orig.</th><th class="num">USD</th><th>Origen</th><th></th></tr></thead><tbody>${b||'<tr><td colspan="11" class="dim">Sin movimientos cargados.</td></tr>'}</tbody>`;
+  $$("#tMov [data-del]").forEach(el=>el.onclick=()=>{ ST.movs=ST.movs.filter(x=>x.id!=el.dataset.del); save(); refresh(); });
+  $$("#tMov [data-tog]").forEach(el=>el.onclick=()=>{ const m=ST.movs.find(x=>x.id==el.dataset.tog);
+    m.estado = m.estado==="ejecutado"?"comprometido":"ejecutado"; save(); refresh(); });
+}
+
+function tcMes(k){ const i=S().months.indexOf(k); return (i>=0 && S().tc[i]) || S().tc[0] || 3.36; }
+
+function addMov(){
+  const f=$("#fFecha").value, r=$("#fRecurso").value, monto=parseFloat($("#fMonto").value);
+  if(!f) return toast("Falta la fecha",1);
+  if(!r) return toast("Falta el recurso",1);
+  if(!(monto>0)) return toast("Falta el monto",1);
+  const mes=f.slice(0,4)+"_"+f.slice(5,7);
+  if(!S().months.includes(mes)) return toast("Esa fecha está fuera de "+S().label,1);
+  const moneda=$("#fMoneda").value, usd = moneda==="PEN" ? monto/tcMes(mes) : monto;
+  const den=$("#fDenom").value;
+  const mv={id:Date.now()+Math.random(), season:ST.season, fecha:f, mes, recurso:r, denom:den, descrip:den,
+            concepto:$("#fConcepto").value.trim(), doc:$("#fDoc").value.trim(), estado:$("#fEstado").value,
+            monto, moneda, tc: moneda==="PEN"?tcMes(mes):1, usd, origen:"manual"};
+  ST.movs.push(mv); save();
+  const a=A.byR[r], gast=a?sum(a.e)+sum(a.c):0;
+  $("#fConcepto").value=""; $("#fMonto").value=""; $("#fDoc").value="";
+  refresh();
+  const nuevo=(A.byR[r]?sum(A.byR[r].e)+sum(A.byR[r].c):0), pp=pptoR(r);
+  if(nuevo>pp+EPS) toast(`⚠ «${r}» quedó excedido en $${fmt0(nuevo-pp)} sobre su tope`,1);
+  else toast(`Cargado. Disponible en «${r}»: $${fmt0(pp-nuevo)}`);
+  avisoDisp();
+}
+function avisoDisp(){
+  const r=$("#fRecurso").value; if(!r) return $("#fAviso").innerHTML="";
+  const a=A.byR[r], t=a?sum(a.e)+sum(a.c):0, pp=pptoR(r), pl=planR(r);
+  const [k]=sem(t,pp);
+  $("#fAviso").innerHTML=`<span class="sem"><i class="dot ${k}"></i></span> <b>${esc(r)}</b> ·
+    Ppto $${fmt0(pp)} · Plan $${fmt0(pl)} · Consumido $${fmt0(t)} ·
+    <b class="${pp-t<0?"neg":"pos"}">Disponible $${fmt0(pp-t)}</b>`;
+}
+
+/* ---- importar SAP ---- */
+const COLS={
+  ceco:["centro de coste"], anio:["ejercicio"], per:["periodo","período"],
+  cc:["clase de coste","info clase de coste"], den:["denom.clase de coste","denom clase de coste"],
+  des:["descrip.clases coste","descrip clases coste","denominación","denominacion"],
+  usd:["val/mon.so.co","val/mon so co","valor/moneda so.co"],
+  orig:["importe origen","valor/moneda objeto"], mon:["moneda origen"],
+  doc:["número de documento","numero de documento","n° de documento","nº docum.refer.","documento compras"],
+  txt:["texto de cabecera de documento","texto de pedido","denominación"],
+  fec:["fe.contabilización","fe.contabilizacion","fecha valor"]
+};
+function importSAP(){
+  const raw=$("#taPaste").value.trim();
+  if(!raw) return $("#pasteMsg").innerHTML='<span class="err">Pega los datos primero.</span>';
+  const rows=raw.split(/\r?\n/).map(l=>l.split("\t").length>1?l.split("\t"):l.split(/;|,(?=(?:[^"]*"[^"]*")*[^"]*$)/))
+                .map(a=>a.map(s=>String(s).replace(/^"|"$/g,"").trim()));
+  const hdr=rows[0].map(norm), idx={};
+  for(const [k,names] of Object.entries(COLS)) idx[k]=hdr.findIndex(h=>names.some(n=>h===norm(n)));
+  if(idx.usd<0 && idx.orig<0) return $("#pasteMsg").innerHTML='<span class="err">No encuentro la columna de monto (Val/Mon.so.CO o Importe Origen). Revisa que hayas copiado la fila de encabezados.</span>';
+  if(idx.anio<0||idx.per<0) return $("#pasteMsg").innerHTML='<span class="err">No encuentro Ejercicio y Período.</span>';
+
+  if($("#ckReplace").checked) ST.movs=ST.movs.filter(m=>!(m.season===ST.season&&m.origen==="sap"));
+  const numify=s=>{ if(!s) return 0; s=String(s).replace(/\s/g,"");
+    if(/,\d{1,2}$/.test(s)) s=s.replace(/\./g,"").replace(",","."); else s=s.replace(/,/g,"");
+    const v=parseFloat(s); return isNaN(v)?0:v; };
+  let ok=0, fuera=0, sinRec=new Set();
+  for(const row of rows.slice(1)){
+    if(!row.length||row.every(c=>!c)) continue;
+    const mes=(row[idx.anio]||"").trim()+"_"+String(row[idx.per]||"").trim().padStart(2,"0");
+    if(!S().months.includes(mes)){ fuera++; continue; }
+    let usd = idx.usd>=0 ? numify(row[idx.usd]) : 0;
+    const mon = idx.mon>=0 ? (row[idx.mon]||"").toUpperCase() : "";
+    if(!usd && idx.orig>=0){ const o=numify(row[idx.orig]); usd = mon==="PEN" ? o/tcMes(mes) : o; }
+    if(!usd) continue;
+    const den = idx.den>=0 ? row[idx.den] : "";
+    const des = idx.des>=0 ? row[idx.des] : "";
+    const cc  = idx.cc>=0  ? row[idx.cc]  : "";
+    const rec = MAPDEN[norm(den)] || MAPDEN[norm(des)] || MAPDEN["cc:"+String(cc).trim()] || null;
+    if(!rec) sinRec.add(den||des||cc||"(sin clase de coste)");
+    ST.movs.push({id:Date.now()+Math.random(), season:ST.season, fecha:(idx.fec>=0&&row[idx.fec])||"",
+      mes, recurso:rec||("Sin clasificar: "+(den||des||cc||"?")), denom:den, descrip:des,
+      concepto:(idx.txt>=0?row[idx.txt]:"")||des||den, doc:(idx.doc>=0?row[idx.doc]:"")||"",
+      estado:"ejecutado", monto:usd, moneda:"USD", tc:1, usd, origen:"sap"});
+    ok++;
+  }
+  save(); refresh();
+  $("#pasteMsg").innerHTML=`<b>${ok}</b> movimientos importados como <i>ejecutado</i>.`+
+    (fuera?` · ${fuera} fuera de ${S().label} (ignorados).`:"")+
+    (sinRec.size?`<br><span class="err">⚠ ${sinRec.size} clase(s) de coste sin recurso en el presupuesto: ${[...sinRec].slice(0,4).map(esc).join(", ")}${sinRec.size>4?"…":""}. Quedaron como «Sin clasificar» al final del control.</span>`:"");
+  if(ok) setTimeout(()=>{ $("#mPaste").classList.remove("on"); $("#taPaste").value=""; }, 1800);
+}
+
+/* ================= DETALLE ================= */
+function drawDet(){
+  const f=norm($("#fltDet").value), ms=S().months;
+  let h=`<thead><tr><th>Recurso</th><th>Denom. clase de coste</th><th>Descripción</th><th>Material / servicio</th>
+    <th>Tipo</th><th class="num">PU</th><th>Mon.</th>`;
+  ms.forEach(m=>h+=`<th class="num">${MES[+m.split("_")[1]-1]}</th>`);
+  h+=`<th class="num">Total USD</th></tr></thead>`;
+  let b="", tot=0;
+  for(const l of S().lines){
+    if(f && !norm([l.recurso,l.denomClaseCoste,l.descripClaseCoste,l.textoMaterial,l.material,l.claseCoste].join(" ")).includes(f)) continue;
+    const t=sum(l.usd); tot+=t;
+    b+=`<tr><td>${esc(l.recurso)}</td><td>${esc(l.denomClaseCoste)}</td><td>${esc(l.descripClaseCoste)}</td>
+      <td style="white-space:normal;max-width:230px">${esc(l.textoMaterial||"—")}</td><td>${esc(l.tipo)}</td>
+      <td class="num">${fmt(l.pu,2)}</td><td>${esc(l.moneda)}</td>`;
+    l.usd.forEach((v,i)=>b+=`<td class="num ${v?"":"dim"}">${v?fmt0(v):"–"}</td>`);
+    b+=`<td class="num"><b>${fmt0(t)}</b></td></tr>`;
+  }
+  b+=`<tr class="tot"><td colspan="7">Total</td>`;
+  ms.forEach((m,i)=>b+=`<td class="num">${fmt0(S().lines.reduce((a,l)=>a+(l.usd[i]||0),0))}</td>`);
+  b+=`<td class="num">${fmt0(tot)}</td></tr>`;
+  $("#tDet").innerHTML=h+"<tbody>"+b+"</tbody>";
+}
+
+/* ================= infra ================= */
+let toastT;
+function toast(msg,bad){ const t=$("#toast"); t.textContent=msg; t.className="on"+(bad?" bad":"");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className="",bad?4200:2400); }
+
+function refresh(){ T=tree(); A=agg(); drawKpis(); drawCtrl(); drawCharts(); drawPlan(); drawMov(); drawDet(); avisoDisp(); }
+
+function fillSelects(){
+  $("#selSeason").innerHTML=BASE.seasons.map(s=>`<option value="${s.id}" ${s.id===ST.season?"selected":""}>${esc(s.label)} · $${fmt0(s.total)}</option>`).join("");
+  const rs=recursos();
+  $("#fRecurso").innerHTML=`<option value="">— elegir —</option>`+rs.map(r=>`<option>${esc(r)}</option>`).join("");
+  $("#fltRecurso").innerHTML=`<option value="">Todos los recursos</option>`+rs.map(r=>`<option>${esc(r)}</option>`).join("");
+  $("#selMoveTo").innerHTML=S().months.map((m,i)=>`<option value="${i}">${mLab(m)}</option>`).join("");
+  const i=Math.max(0,Math.min(curIdx(),NM()-1)); $("#selMoveTo").value=i;
+  fillDenom();
+  const hoy=new Date().toISOString().slice(0,10);
+  $("#fFecha").value = S().months.includes(hoy.slice(0,4)+"_"+hoy.slice(5,7)) ? hoy : S().months[Math.max(0,Math.min(curIdx(),NM()-1))].replace("_","-")+"-01";
+  $("#hSub").textContent=`${BASE.header.entidad} · ${BASE.header.gerencia} · ${S().label} · Presupuesto USD ${fmt0(S().total)} · control en USD`;
+}
+function fillDenom(){
+  const r=$("#fRecurso").value, R=T.get(r);
+  $("#fDenom").innerHTML = R ? [...R.hijos.keys()].sort((a,b)=>a.localeCompare(b,"es")).map(d=>`<option>${esc(d)}</option>`).join("") : `<option value="">—</option>`;
+}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({app:"gav-tracker",exported:new Date().toISOString(),state:ST},null,1)],{type:"application/json"});
+  dl(blob,`seguimiento_gavs_${new Date().toISOString().slice(0,10)}.json`);
+}
+function exportCSV(){
+  const ms=S().months, p=plan(), lines=[];
+  lines.push(["Recurso","Presupuesto USD","Plan USD","Comprometido USD","Ejecutado USD","Disponible USD",...ms.map(mLab)].join(";"));
+  for(const r of recursos()){
+    const a=A.byR[r]||{e:[],c:[]}, e=sum(a.e||[]), c=sum(a.c||[]);
+    lines.push([r,pptoR(r).toFixed(2),planR(r).toFixed(2),c.toFixed(2),e.toFixed(2),(pptoR(r)-e-c).toFixed(2),...p[r].map(v=>v.toFixed(2))].join(";"));
+  }
+  lines.push("");
+  lines.push(["Fecha","Mes","Recurso","Denom. clase de coste","Concepto","Doc","Estado","Monto origen","Moneda","USD","Origen"].join(";"));
+  for(const m of movs()) lines.push([m.fecha,m.mes,m.recurso,m.denom,String(m.concepto||"").replace(/;/g,","),m.doc,m.estado,m.monto.toFixed(2),m.moneda,m.usd.toFixed(2),m.origen].join(";"));
+  dl(new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8"}),`seguimiento_gavs_${ST.season}.csv`);
+}
+function dl(blob,name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); }
+
+/* ---- eventos ---- */
+$$(".tab").forEach(t=>t.onclick=()=>{
+  $$(".tab").forEach(x=>x.setAttribute("aria-selected", x===t));
+  $$(".view").forEach(v=>v.classList.toggle("on", v.id==="v-"+t.dataset.v));
+});
+$("#selSeason").onchange=e=>{ ST.season=e.target.value; save(); T=tree(); fillSelects(); refresh(); };
+$("#ckAcum").onchange=drawCtrl;
+$("#bExpAll").onclick=()=>{ for(const r of recursos()){ ST.open[r]=true; for(const d of T.get(r).hijos.keys()) ST.open[r+"§"+d]=true; } save(); drawCtrl(); };
+$("#bColAll").onclick=()=>{ ST.open={}; save(); drawCtrl(); };
+$("#bPullSaldo").onclick=pullSaldo;
+$("#bResetPlan").onclick=()=>{ if(confirm("¿Volver al reparto mensual original del presupuesto?")){ delete ST.plan[ST.season]; save(); refresh(); toast("Plan restaurado"); } };
+$("#fRecurso").onchange=()=>{ fillDenom(); avisoDisp(); };
+$("#bAdd").onclick=addMov;
+["fConcepto","fMonto","fDoc"].forEach(id=>$("#"+id).addEventListener("keydown",e=>{ if(e.key==="Enter") addMov(); }));
+["fltEstado","fltRecurso","fltTxt"].forEach(id=>$("#"+id).addEventListener("input",drawMov));
+$("#fltDet").oninput=drawDet;
+$("#bPaste").onclick=()=>{ $("#pasteMsg").innerHTML=""; $("#mPaste").classList.add("on"); $("#taPaste").focus(); };
+$("#bPasteCancel").onclick=()=>$("#mPaste").classList.remove("on");
+$("#bPasteOk").onclick=importSAP;
+$("#mPaste").onclick=e=>{ if(e.target.id==="mPaste") $("#mPaste").classList.remove("on"); };
+$("#bExport").onclick=exportJSON;
+$("#bCsv").onclick=exportCSV;
+$("#bImport").onclick=()=>$("#fileIn").click();
+$("#fileIn").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader();
+  rd.onload=()=>{ try{ const j=JSON.parse(rd.result); const s=j.state||j;
+    if(!s||!Array.isArray(s.movs)) throw 0; ST=s; ST.v=1; save(); T=tree(); fillSelects(); refresh(); toast("Respaldo restaurado");
+  }catch(err){ toast("Archivo no válido",1); } }; rd.readAsText(f); e.target.value=""; };
+$("#bReset").onclick=()=>{ if(confirm("Borra el plan reprogramado y todos los movimientos cargados. ¿Seguro?")){
+  ST={v:1,season:ST.season,plan:{},movs:[],open:{},theme:ST.theme}; save(); refresh(); toast("Todo limpio"); } };
+$("#bTheme").onclick=()=>{ const cur=document.documentElement.getAttribute("data-theme");
+  const next = cur==="dark" ? "light" : cur==="light" ? null : "dark";
+  next ? document.documentElement.setAttribute("data-theme",next) : document.documentElement.removeAttribute("data-theme");
+  ST.theme=next; save(); drawCharts(); };
+if(ST.theme) document.documentElement.setAttribute("data-theme",ST.theme);
+addEventListener("scroll",hideTip,{passive:true});
+
+fillSelects(); refresh();
+</script>
+</body>
+</html>
